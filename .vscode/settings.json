@@ -1,0 +1,9 @@
+{
+  // "typescript.preferences.importModuleSpecifier": "non-relative", // "relative"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "npm.packageManager": "pnpm",
+  // "editor.formatOnSave": false,
+  // "editor.codeActionsOnSave": {
+  //   "source.fixAll.eslint": false
+  // },
+}
