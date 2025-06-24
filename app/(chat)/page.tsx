@@ -1,5 +1,11 @@
-import { Chat } from "@/components/chat";
+import BoundingBox from "@/components/bounding-box";
+import { ImageUpload } from "@/components/image-upload";
 
 export default function Page() {
-  return <Chat />;
+  return (
+    <>
+      <ImageUpload />
+      <BoundingBox width={200} height={100} />
+    </>
+  );
 }
