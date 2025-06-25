@@ -5,7 +5,7 @@ export default function Page() {
   return (
     <>
       <ImageUpload />
-      <BoundingBox width={200} height={100} />
+      <BoundingBox width={200} height={300} />
     </>
   );
 }
