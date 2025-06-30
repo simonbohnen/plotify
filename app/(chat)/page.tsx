@@ -1,6 +1,7 @@
 "use client";
 
 import { ArtworkTemplate } from "@/components/artwork-template";
+import { ArtworkTemplateScreen } from "@/components/artwork-template-screen";
 import BoundingBox from "@/components/bounding-box";
 import { ImageUpload } from "@/components/image-upload";
 import { WelcomeScreen } from "@/components/welcome-screen";
@@ -16,20 +17,60 @@ import { useState } from "react";
 
 export default function Page() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<ArtworkTemplate | null>(null);
   
   const sampleTemplates = [
-    new ArtworkTemplate("Abstract Expressionism"),
-    new ArtworkTemplate("Impressionist Landscape"),
-    new ArtworkTemplate("Modern Portrait"),
-    new ArtworkTemplate("Surrealist Dreamscape"),
-    new ArtworkTemplate("Minimalist Composition"),
-    new ArtworkTemplate("Pop Art Style"),
+    new ArtworkTemplate("Abstract Expressionism", [
+      "Start with a blank canvas",
+      "Apply bold, gestural brushstrokes",
+      "Use vibrant, contrasting colors",
+      "Add texture and depth with palette knife",
+      "Express emotion through abstract forms"
+    ]),
+    new ArtworkTemplate("Impressionist Landscape", [
+      "Sketch the basic landscape composition",
+      "Apply loose, visible brushstrokes",
+      "Use natural, outdoor lighting colors",
+      "Capture the changing atmosphere",
+      "Focus on light and color over detail"
+    ]),
+    new ArtworkTemplate("Modern Portrait", [
+      "Draw the basic facial structure",
+      "Block in major shadow areas",
+      "Build up skin tones gradually",
+      "Add expressive details to eyes",
+      "Refine edges and add highlights"
+    ]),
+    new ArtworkTemplate("Surrealist Dreamscape", [
+      "Create an impossible landscape",
+      "Combine unrelated objects seamlessly",
+      "Use dreamlike, symbolic imagery",
+      "Apply smooth, realistic rendering",
+      "Add mysterious lighting effects"
+    ]),
+    new ArtworkTemplate("Minimalist Composition", [
+      "Start with geometric shapes",
+      "Use limited color palette",
+      "Focus on negative space",
+      "Apply clean, precise lines",
+      "Create visual balance and harmony"
+    ]),
+    new ArtworkTemplate("Pop Art Style", [
+      "Choose bold, flat colors",
+      "Use strong, graphic outlines",
+      "Incorporate popular culture elements",
+      "Apply Ben-Day dots or halftone patterns",
+      "Create high contrast, vibrant composition"
+    ]),
   ];
 
   const handleArtworkTemplateSelect = (template: ArtworkTemplate) => {
     console.log("Selected artwork template:", template.name);
-    setIsDialogOpen(false); // Close the dialog when a template is selected
-    // TODO: Handle template selection - navigate to creation page, etc.
+    setSelectedTemplate(template);
+  };
+
+  const handleBackToTemplates = () => {
+    setSelectedTemplate(null);
   };
 
   return (
@@ -48,12 +89,21 @@ export default function Page() {
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Choose an Artwork Template</DialogTitle>
+              <DialogTitle>
+                {selectedTemplate ? selectedTemplate.name : "Choose an Artwork Template"}
+              </DialogTitle>
             </DialogHeader>
-            <WelcomeScreen 
-              artworkTemplates={sampleTemplates} 
-              onArtworkTemplateSelect={handleArtworkTemplateSelect} 
-            />
+            {selectedTemplate ? (
+              <ArtworkTemplateScreen 
+                template={selectedTemplate} 
+                onBack={handleBackToTemplates}
+              />
+            ) : (
+              <WelcomeScreen 
+                artworkTemplates={sampleTemplates} 
+                onArtworkTemplateSelect={handleArtworkTemplateSelect} 
+              />
+            )}
           </DialogContent>
         </Dialog>
       </div>

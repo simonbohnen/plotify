@@ -1,3 +1,3 @@
 export class ArtworkTemplate {
-  constructor(public name: string) {}
+  constructor(public name: string, public steps: string[] = []) {}
 } 

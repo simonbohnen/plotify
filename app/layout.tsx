@@ -5,24 +5,9 @@ import { cn } from "@/lib/utils";
 import { Navbar } from "@/components/navbar";
 
 export const metadata = {
-  title: "AI SDK Python Streaming Preview",
+  title: "Plotify",
   description:
-    "Use the Data Stream Protocol to stream chat completions from a Python endpoint (FastAPI) and display them using the useChat hook in your Next.js application.",
-  openGraph: {
-    images: [
-      {
-        url: "/og?title=AI SDK Python Streaming Preview",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    images: [
-      {
-        url: "/og?title=AI SDK Python Streaming Preview",
-      },
-    ],
-  },
+    "Plotify is a tool that allows you to create beautiful artwork using AI-powered templates.",
 };
 
 export default function RootLayout({
@@ -34,8 +19,6 @@ export default function RootLayout({
     <html lang="en">
       <head></head>
       <body className={cn(GeistSans.className, "antialiased")}>
-        <Toaster position="top-center" richColors />
-        <Navbar />
         {children}
       </body>
     </html>
