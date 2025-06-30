@@ -1,10 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    outputFileTracingExcludes: {
-      '*': ['old/**/*'],
-    },
-  },
   rewrites: async () => {
     return [
       {

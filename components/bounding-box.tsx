@@ -11,9 +11,9 @@ interface BoundingBoxProps {
 
 const BoundingBox: React.FC<BoundingBoxProps> = ({ width, height, className }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   // const boxRef = useRef<HTMLDivElement>(null);
   // const [dragging, setDragging] = useState(false);
-  // const [position, setPosition] = useState({ x: 0, y: 0 });
   // const [start, setStart] = useState({ x: 0, y: 0 });
   // const [offset, setOffset] = useState({ x: 0, y: 0 });
 
@@ -34,6 +34,10 @@ const BoundingBox: React.FC<BoundingBoxProps> = ({ width, height, className }) =
 
     fetchImage();
   }, []);
+
+  const handleDragStop = (e: any, d: any) => {
+    setPosition({ x: d.x, y: d.y });
+  };
 
   // const handleMouseDown = (e: React.MouseEvent<HTMLImageElement, MouseEvent>) => {
   //   console.log("handleMouseDown");
@@ -99,8 +103,28 @@ const BoundingBox: React.FC<BoundingBoxProps> = ({ width, height, className }) =
         overflow: "hidden"
       }}
     >
+      {/* Position display */}
+      <div
+        style={{
+          position: "absolute",
+          top: "10px",
+          left: "10px",
+          background: "rgba(0, 0, 0, 0.7)",
+          color: "white",
+          padding: "4px 8px",
+          borderRadius: "4px",
+          fontSize: "12px",
+          zIndex: 10,
+          fontFamily: "monospace"
+        }}
+      >
+        x: {Math.round(position.x)}, y: {Math.round(position.y)}
+      </div>
+
       <Rnd
         bounds="parent"
+        position={position}
+        onDragStop={handleDragStop}
         default={{
           x: 0,
           y: 0,
