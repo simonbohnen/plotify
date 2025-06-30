@@ -1,6 +1,6 @@
 "use client";
 
-import { ArtworkTemplate } from "@/components/artwork-template";
+import { ArtworkTemplate, ArtworkStep } from "@/components/artwork-template";
 import { ArtworkTemplateScreen } from "@/components/artwork-template-screen";
 import BoundingBox from "@/components/bounding-box";
 import { ImageUpload } from "@/components/image-upload";
@@ -21,46 +21,138 @@ export default function Page() {
   
   const sampleTemplates = [
     new ArtworkTemplate("Abstract Expressionism", [
-      "Start with a blank canvas",
-      "Apply bold, gestural brushstrokes",
-      "Use vibrant, contrasting colors",
-      "Add texture and depth with palette knife",
-      "Express emotion through abstract forms"
+      {
+        name: "Vectorization",
+        description: "Convert input into vector format for scalable processing",
+        inputType: "string",
+        outputType: "string",
+        execute: async (input: any) => {
+          // Dummy execution - in real app this would call an API
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return "vectorized_output";
+        }
+      },
+      {
+        name: "Hatching",
+        description: "Apply hatching patterns for texture and depth",
+        inputType: "string",
+        outputType: "string",
+        execute: async (input: any) => {
+          // Dummy execution - in real app this would call an API
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return "hatched_output";
+        }
+      }
     ]),
     new ArtworkTemplate("Impressionist Landscape", [
-      "Sketch the basic landscape composition",
-      "Apply loose, visible brushstrokes",
-      "Use natural, outdoor lighting colors",
-      "Capture the changing atmosphere",
-      "Focus on light and color over detail"
+      {
+        name: "Vectorization",
+        description: "Convert landscape elements to vector format",
+        inputType: "string",
+        outputType: "string",
+        execute: async (input: any) => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return "landscape_vectorized";
+        }
+      },
+      {
+        name: "Hatching",
+        description: "Apply impressionist-style hatching",
+        inputType: "string",
+        outputType: "string",
+        execute: async (input: any) => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return "impressionist_hatched";
+        }
+      }
     ]),
     new ArtworkTemplate("Modern Portrait", [
-      "Draw the basic facial structure",
-      "Block in major shadow areas",
-      "Build up skin tones gradually",
-      "Add expressive details to eyes",
-      "Refine edges and add highlights"
+      {
+        name: "Vectorization",
+        description: "Convert portrait features to vector format",
+        inputType: "string",
+        outputType: "string",
+        execute: async (input: any) => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return "portrait_vectorized";
+        }
+      },
+      {
+        name: "Hatching",
+        description: "Apply modern portrait hatching techniques",
+        inputType: "string",
+        outputType: "string",
+        execute: async (input: any) => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return "modern_portrait_hatched";
+        }
+      }
     ]),
     new ArtworkTemplate("Surrealist Dreamscape", [
-      "Create an impossible landscape",
-      "Combine unrelated objects seamlessly",
-      "Use dreamlike, symbolic imagery",
-      "Apply smooth, realistic rendering",
-      "Add mysterious lighting effects"
+      {
+        name: "Vectorization",
+        description: "Convert surreal elements to vector format",
+        inputType: "string",
+        outputType: "string",
+        execute: async (input: any) => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return "surreal_vectorized";
+        }
+      },
+      {
+        name: "Hatching",
+        description: "Apply dreamlike hatching patterns",
+        inputType: "string",
+        outputType: "string",
+        execute: async (input: any) => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return "dreamlike_hatched";
+        }
+      }
     ]),
     new ArtworkTemplate("Minimalist Composition", [
-      "Start with geometric shapes",
-      "Use limited color palette",
-      "Focus on negative space",
-      "Apply clean, precise lines",
-      "Create visual balance and harmony"
+      {
+        name: "Vectorization",
+        description: "Convert geometric shapes to vector format",
+        inputType: "string",
+        outputType: "string",
+        execute: async (input: any) => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return "minimalist_vectorized";
+        }
+      },
+      {
+        name: "Hatching",
+        description: "Apply minimal hatching for subtle texture",
+        inputType: "string",
+        outputType: "string",
+        execute: async (input: any) => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return "minimal_hatched";
+        }
+      }
     ]),
     new ArtworkTemplate("Pop Art Style", [
-      "Choose bold, flat colors",
-      "Use strong, graphic outlines",
-      "Incorporate popular culture elements",
-      "Apply Ben-Day dots or halftone patterns",
-      "Create high contrast, vibrant composition"
+      {
+        name: "Vectorization",
+        description: "Convert pop art elements to vector format",
+        inputType: "string",
+        outputType: "string",
+        execute: async (input: any) => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return "pop_art_vectorized";
+        }
+      },
+      {
+        name: "Hatching",
+        description: "Apply bold pop art hatching patterns",
+        inputType: "string",
+        outputType: "string",
+        execute: async (input: any) => {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return "pop_art_hatched";
+        }
+      }
     ]),
   ];
 
@@ -87,7 +179,7 @@ export default function Page() {
               Choose Artwork Template
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {selectedTemplate ? selectedTemplate.name : "Choose an Artwork Template"}

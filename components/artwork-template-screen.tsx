@@ -1,7 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArtworkTemplate } from "./artwork-template";
+import { useState } from "react";
+import { ArtworkTemplate, ArtworkStep } from "./artwork-template";
+import { StepWorkflow } from "./step-workflow";
 
 interface ArtworkTemplateScreenProps {
   template: ArtworkTemplate;
@@ -12,6 +14,32 @@ export const ArtworkTemplateScreen = ({
   template, 
   onBack 
 }: ArtworkTemplateScreenProps) => {
+  const [isExecuting, setIsExecuting] = useState(false);
+
+  const handleStartExecution = () => {
+    setIsExecuting(true);
+  };
+
+  const handleExecutionComplete = (finalOutput: any) => {
+    console.log("Template execution completed with output:", finalOutput);
+    // Here you could show a completion screen or navigate somewhere
+    setIsExecuting(false);
+  };
+
+  const handleBackToTemplate = () => {
+    setIsExecuting(false);
+  };
+
+  if (isExecuting) {
+    return (
+      <StepWorkflow
+        template={template}
+        onBack={handleBackToTemplate}
+        onComplete={handleExecutionComplete}
+      />
+    );
+  }
+
   return (
     <motion.div
       key="artwork-template-screen"
@@ -48,7 +76,7 @@ export const ArtworkTemplateScreen = ({
           <h1 className="text-2xl font-bold">{template.name}</h1>
         </div>
 
-        {/* Steps */}
+        {/* Steps Overview */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-muted-foreground">Steps</h2>
           {template.steps.length > 0 ? (
@@ -65,7 +93,18 @@ export const ArtworkTemplateScreen = ({
                     <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
                       {index + 1}
                     </div>
-                    <p className="text-sm leading-relaxed">{step}</p>
+                    <div className="flex-1">
+                      <h3 className="font-medium mb-1">{step.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-2">{step.description}</p>
+                      <div className="flex gap-2 text-xs">
+                        <span className="bg-muted px-2 py-1 rounded">
+                          Input: {step.inputType}
+                        </span>
+                        <span className="bg-muted px-2 py-1 rounded">
+                          Output: {step.outputType}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -76,6 +115,20 @@ export const ArtworkTemplateScreen = ({
             </div>
           )}
         </div>
+
+        {/* Start Execution Button */}
+        {template.steps.length > 0 && (
+          <div className="pt-4">
+            <motion.button
+              onClick={handleStartExecution}
+              className="w-full bg-primary text-primary-foreground py-3 px-6 rounded-lg font-medium hover:bg-primary/90 transition-colors"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Start Template Execution
+            </motion.button>
+          </div>
+        )}
       </div>
     </motion.div>
   );
