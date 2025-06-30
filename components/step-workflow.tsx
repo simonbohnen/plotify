@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ArtworkTemplate, ArtworkStep } from "./artwork-template";
-import { VectorizationScreen } from "./vectorization-screen";
-import { HatchingScreen } from "./hatching-screen";
+import { ArtworkTemplate, ArtworkStep } from "../lib/artwork-template";
+import { VectorizationScreen } from "./screen/vectorization-screen";
+import { HatchingScreen } from "./screen/hatching-screen";
 import { ScreenState } from "@/lib/types";
 
 interface StepWorkflowProps {

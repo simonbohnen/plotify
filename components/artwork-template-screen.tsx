@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { ArtworkTemplate, ArtworkStep } from "./artwork-template";
+import { ArtworkTemplate, ArtworkStep } from "../lib/artwork-template";
 import { StepWorkflow } from "./step-workflow";
 
 interface ArtworkTemplateScreenProps {

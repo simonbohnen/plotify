@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArtworkTemplate } from "./artwork-template";
+import { ArtworkTemplate } from "../lib/artwork-template";
 
 interface WelcomeScreenProps {
   artworkTemplates: ArtworkTemplate[];

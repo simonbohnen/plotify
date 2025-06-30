@@ -1,8 +1,6 @@
 import "./globals.css";
 import { GeistSans } from "geist/font/sans";
-import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
-import { Navbar } from "@/components/navbar";
 
 export const metadata = {
   title: "Plotify",

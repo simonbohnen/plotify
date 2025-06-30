@@ -1,9 +1,9 @@
 "use client";
 
-import { ArtworkTemplate, ArtworkStep } from "@/components/artwork-template";
+import { ArtworkTemplate, ArtworkStep } from "@/lib/artwork-template";
 import { ArtworkTemplateScreen } from "@/components/artwork-template-screen";
-import BoundingBox from "@/components/bounding-box";
-import { ImageUpload } from "@/components/image-upload";
+import BoundingBox from "@/components/screen/bounding-box";
+import { ImageUpload } from "@/components/screen/image-upload";
 import { WelcomeScreen } from "@/components/welcome-screen";
 import { Button } from "@/components/ui/button";
 import {
