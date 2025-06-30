@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ai-sdk/ui-utils": "^0.0.20",
+    "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.1.0",
     "@types/node": "20.2.4",
     "@types/react": "18.2.7",
