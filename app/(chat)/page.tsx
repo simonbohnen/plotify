@@ -19,19 +19,20 @@ export default function Page() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ArtworkTemplate | null>(null);
   
+  const vectorizationStep: ArtworkStep = {
+    name: "Vectorization",
+    description: "Convert input into vector format for scalable processing",
+    inputType: "none",
+    outputType: "string",
+    execute: async (input: any) => {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return "vectorized_output";
+    }
+  }
+  
   const sampleTemplates = [
     new ArtworkTemplate("Abstract Expressionism", [
-      {
-        name: "Vectorization",
-        description: "Convert input into vector format for scalable processing",
-        inputType: "string",
-        outputType: "string",
-        execute: async (input: any) => {
-          // Dummy execution - in real app this would call an API
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          return "vectorized_output";
-        }
-      },
+      vectorizationStep,
       {
         name: "Hatching",
         description: "Apply hatching patterns for texture and depth",
@@ -45,16 +46,7 @@ export default function Page() {
       }
     ]),
     new ArtworkTemplate("Impressionist Landscape", [
-      {
-        name: "Vectorization",
-        description: "Convert landscape elements to vector format",
-        inputType: "string",
-        outputType: "string",
-        execute: async (input: any) => {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          return "landscape_vectorized";
-        }
-      },
+      vectorizationStep,
       {
         name: "Hatching",
         description: "Apply impressionist-style hatching",
@@ -67,16 +59,7 @@ export default function Page() {
       }
     ]),
     new ArtworkTemplate("Modern Portrait", [
-      {
-        name: "Vectorization",
-        description: "Convert portrait features to vector format",
-        inputType: "string",
-        outputType: "string",
-        execute: async (input: any) => {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          return "portrait_vectorized";
-        }
-      },
+      vectorizationStep,
       {
         name: "Hatching",
         description: "Apply modern portrait hatching techniques",
@@ -89,16 +72,7 @@ export default function Page() {
       }
     ]),
     new ArtworkTemplate("Surrealist Dreamscape", [
-      {
-        name: "Vectorization",
-        description: "Convert surreal elements to vector format",
-        inputType: "string",
-        outputType: "string",
-        execute: async (input: any) => {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          return "surreal_vectorized";
-        }
-      },
+      vectorizationStep,
       {
         name: "Hatching",
         description: "Apply dreamlike hatching patterns",
@@ -111,16 +85,7 @@ export default function Page() {
       }
     ]),
     new ArtworkTemplate("Minimalist Composition", [
-      {
-        name: "Vectorization",
-        description: "Convert geometric shapes to vector format",
-        inputType: "string",
-        outputType: "string",
-        execute: async (input: any) => {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          return "minimalist_vectorized";
-        }
-      },
+      vectorizationStep,
       {
         name: "Hatching",
         description: "Apply minimal hatching for subtle texture",
@@ -133,16 +98,7 @@ export default function Page() {
       }
     ]),
     new ArtworkTemplate("Pop Art Style", [
-      {
-        name: "Vectorization",
-        description: "Convert pop art elements to vector format",
-        inputType: "string",
-        outputType: "string",
-        execute: async (input: any) => {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          return "pop_art_vectorized";
-        }
-      },
+      vectorizationStep,
       {
         name: "Hatching",
         description: "Apply bold pop art hatching patterns",

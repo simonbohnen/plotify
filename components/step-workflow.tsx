@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArtworkTemplate, ArtworkStep } from "./artwork-template";
 import { VectorizationScreen } from "./vectorization-screen";
 import { HatchingScreen } from "./hatching-screen";
+import { ScreenState } from "@/lib/types";
 
 interface StepWorkflowProps {
   template: ArtworkTemplate;
@@ -18,11 +19,38 @@ export const StepWorkflow = ({
 }: StepWorkflowProps) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [stepOutputs, setStepOutputs] = useState<Record<number, any>>({});
+  const [currentStepOutput, setCurrentStepOutput] = useState<any>(null);
+  const [currentStepState, setCurrentStepState] = useState<ScreenState>(ScreenState.WAITING_FOR_USER_INPUT);
 
   const currentStep = template.steps[currentStepIndex];
   const isLastStep = currentStepIndex === template.steps.length - 1;
 
-  const handleStepComplete = (output: any) => {
+  const handleContinue = async () => {
+    if (!currentStep) return;
+    if (currentStepState === ScreenState.EXECUTED) {
+        goToNextStep(currentStepOutput);
+        return;
+    }
+    if (currentStepState === ScreenState.READY_TO_EXECUTE) {
+        setCurrentStepState(ScreenState.EXECUTING);
+
+        try {
+          const stepInput = currentStepIndex === 0 
+            ? "initial_input_string" // For first step, use a default input
+            : stepOutputs[currentStepIndex - 1]; // For subsequent steps, use previous step's output
+          
+          const output = await currentStep.execute(stepInput);
+          setCurrentStepOutput(output);
+          setCurrentStepState(ScreenState.EXECUTED);
+        } catch (error) {
+          console.error("Step execution failed:", error);
+          setCurrentStepOutput("error");
+          setCurrentStepState(ScreenState.WAITING_FOR_USER_INPUT);
+        }
+    }
+  };
+
+  const goToNextStep = (output: any) => {
     // Store the output for this step
     setStepOutputs(prev => ({
       ...prev,
@@ -35,12 +63,16 @@ export const StepWorkflow = ({
     } else {
       // Move to next step
       setCurrentStepIndex(prev => prev + 1);
+      setCurrentStepOutput(null); // Reset output for next step
+      setCurrentStepState(ScreenState.WAITING_FOR_USER_INPUT); // Reset state for next step
     }
   };
 
   const handleStepBack = () => {
     if (currentStepIndex > 0) {
       setCurrentStepIndex(prev => prev - 1);
+      setCurrentStepOutput(null); // Reset output when going back
+      setCurrentStepState(ScreenState.WAITING_FOR_USER_INPUT); // Reset state when going back
     } else {
       onBack?.();
     }
@@ -59,16 +91,18 @@ export const StepWorkflow = ({
       return (
         <VectorizationScreen
           input={stepInput}
-          onComplete={handleStepComplete}
-          onBack={handleStepBack}
+          output={currentStepOutput}
+          state={currentStepState}
+          setStepState={setCurrentStepState}
         />
       );
     } else if (currentStep.name.toLowerCase().includes("hatch")) {
       return (
         <HatchingScreen
           input={stepInput}
-          onComplete={handleStepComplete}
-          onBack={handleStepBack}
+          output={currentStepOutput}
+          state={currentStepState}
+          setStepState={setCurrentStepState}
         />
       );
     } else {
@@ -80,12 +114,18 @@ export const StepWorkflow = ({
           <div className="bg-muted rounded-md p-3 mb-4">
             <strong>Input:</strong> {JSON.stringify(stepInput)}
           </div>
-          <button 
-            onClick={() => handleStepComplete("dummy_output")}
+          {currentStepOutput && (
+            <div className="bg-muted rounded-md p-3 mb-4">
+              <strong>Output:</strong> {JSON.stringify(currentStepOutput)}
+            </div>
+          )}
+          {/* <button 
+            onClick={() => handleStepComplete(currentStepOutput || "dummy_output")}
             className="bg-primary text-primary-foreground px-4 py-2 rounded-md"
+            disabled={!currentStepOutput}
           >
             Complete Step
-          </button>
+          </button> */}
         </div>
       );
     }
@@ -110,8 +150,15 @@ export const StepWorkflow = ({
               style={{ width: `${((currentStepIndex + 1) / template.steps.length) * 100}%` }}
             />
           </div>
-          <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">
-            Run Step
+          <button 
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleContinue}
+            disabled={currentStepState === ScreenState.WAITING_FOR_USER_INPUT || currentStepState === ScreenState.EXECUTING}
+          >
+            {currentStepState === ScreenState.WAITING_FOR_USER_INPUT ? 'Run Step' :
+             currentStepState === ScreenState.READY_TO_EXECUTE ? 'Run Step' :
+             currentStepState === ScreenState.EXECUTING ? 'Running...' :
+             currentStepState === ScreenState.EXECUTED ? 'Next Step' : 'Run Step'}
           </button>
         </div>
       </div>

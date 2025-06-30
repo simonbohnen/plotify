@@ -1,23 +1,25 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { ScreenState } from "@/lib/types";
+import { useEffect } from "react";
 
 interface VectorizationScreenProps {
   input: string;
-  onComplete: (output: string) => void;
-  onBack?: () => void;
+  output?: any;
+  state: ScreenState;
+  setStepState: (state: ScreenState) => void;
 }
 
 export const VectorizationScreen = ({ 
   input, 
-  onComplete, 
-  onBack 
+  output,
+  state,
+  setStepState
 }: VectorizationScreenProps) => {
-  const handleContinue = () => {
-    // For now, just pass a dummy output string
-    onComplete("vectorized_output_string");
-  };
+  useEffect(() => {
+    setStepState(ScreenState.EXECUTED);
+  }, []);
 
   return (
     <motion.div
@@ -31,27 +33,6 @@ export const VectorizationScreen = ({
       <div className="flex flex-col gap-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          {onBack && (
-            <motion.button
-              onClick={onBack}
-              className="p-2 rounded-lg hover:bg-muted transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-            </motion.button>
-          )}
           <h1 className="text-2xl font-bold">Vectorization</h1>
         </div>
 
@@ -71,6 +52,15 @@ export const VectorizationScreen = ({
                   {input || "No input provided"}
                 </div>
               </div>
+              
+              {output && (
+                <div>
+                  <h3 className="font-medium mb-2">Output Generated:</h3>
+                  <div className="bg-green-50 border border-green-200 rounded-md p-3 text-sm">
+                    {output}
+                  </div>
+                </div>
+              )}
               
               <div>
                 <h3 className="font-medium mb-2">What this step does:</h3>
@@ -97,25 +87,17 @@ export const VectorizationScreen = ({
                 <span className="text-sm">Vectorization algorithm initialized</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <span className="text-sm">Processing vector paths...</span>
+                <div className={`w-2 h-2 rounded-full ${state === ScreenState.EXECUTED ? 'bg-green-500' : 'bg-blue-500 animate-pulse'}`}></div>
+                <span className="text-sm">{state === ScreenState.EXECUTED ? 'Processing complete' : 'Processing vector paths...'}</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                <span className="text-sm text-muted-foreground">Finalizing output</span>
+                <div className={`w-2 h-2 rounded-full ${state === ScreenState.EXECUTED ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <span className={`text-sm ${state === ScreenState.EXECUTED ? '' : 'text-muted-foreground'}`}>
+                  {state === ScreenState.EXECUTED ? 'Output ready' : 'Finalizing output'}
+                </span>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-3 pt-4">
-          <Button 
-            onClick={handleContinue}
-            className="px-6"
-          >
-            Continue to Next Step
-          </Button>
         </div>
       </div>
     </motion.div>
