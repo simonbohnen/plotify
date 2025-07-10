@@ -18,12 +18,8 @@ const actions = [
   { key: "export", title: "Export" },
 ];
 
-interface OverviewScreenProps {
-  svg?: string;
-}
-
-export const OverviewScreen: React.FC<OverviewScreenProps> = ({ svg: initialSvg }) => {
-  const [svg, setSvg] = useState<string | undefined>(initialSvg);
+export const OverviewScreen: React.FC = () => {
+  const [svg, setSvg] = useState<string | undefined>(undefined);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -61,8 +57,8 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({ svg: initialSvg 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="w-full bg-card border-b border-border py-6 px-8 min-h-[88px] flex items-center">
-          <span className="font-semibold text-lg">Overview</span>
+        <div className="w-full bg-card border-b border-border py-4 px-8 min-h-[64px] flex items-center">
+          <span className="font-semibold text-lg">Plotify</span>
         </div>
 
         {/* Main Area: Actions Grid */}
@@ -88,9 +84,9 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({ svg: initialSvg 
       {/* Right Sidebar */}
       <div className="w-80 bg-card border-l border-border flex flex-col">
         {/* SVG Preview */}
-        {svg && (
-          <div className="p-6 border-b border-border">
-            <h3 className="text-sm font-medium mb-4">Current Design</h3>
+        <div className="p-6 border-b border-border">
+          <h3 className="text-sm font-medium mb-4">Current Design</h3>
+          {svg ? (
             <div className="w-full h-64 bg-white border border-border rounded flex items-center justify-center overflow-hidden">
               <img
                 src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`}
@@ -99,8 +95,12 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({ svg: initialSvg 
                 draggable={false}
               />
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="w-full h-64 bg-muted/20 border border-border rounded flex items-center justify-center">
+              <p className="text-muted-foreground text-center">No design yet</p>
+            </div>
+          )}
+        </div>
 
         {/* Action Buttons */}
         <div className="flex-1 p-6">
