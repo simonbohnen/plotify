@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,6 +9,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ImageHatchScreen } from "./image-hatch-screen";
+import { updateSvgMetadataWithHash } from "@/lib/svg-utils";
+import { getAssumedSize } from "@/lib/svg-layout";
 
 // Example actions (replace or extend as needed)
 const actions = [
@@ -23,6 +25,29 @@ export const OverviewScreen: React.FC = () => {
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // Test getAssumedSize when SVG changes
+  useEffect(() => {
+    if (svg) {
+      try {
+        // Parse the SVG string to a Document
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svg, 'image/svg+xml');
+        
+        // Test the getAssumedSize function
+        const assumedSize = getAssumedSize(doc);
+        console.log('SVG Assumed Size:', assumedSize);
+        
+        if (assumedSize) {
+          console.log(`Detected size: ${assumedSize.size}, orientation: ${assumedSize.orientation}`);
+        } else {
+          console.log('No matching size found for this SVG');
+        }
+      } catch (error) {
+        console.error('Error testing getAssumedSize:', error);
+      }
+    }
+  }, [svg]);
+
   const handleActionClick = (actionKey: string) => {
     setSelectedAction(actionKey);
     setIsDialogOpen(true);
@@ -31,6 +56,40 @@ export const OverviewScreen: React.FC = () => {
   const handleDialogClose = () => {
     setIsDialogOpen(false);
     setSelectedAction(null);
+  };
+
+  const handleExport = async () => {
+    if (!svg) {
+      alert("No SVG to export");
+      return;
+    }
+
+    try {
+      // Parse the SVG string to a Document
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svg, 'image/svg+xml');
+      
+      // Process the document with our function
+      const processedDoc = await updateSvgMetadataWithHash(doc);
+      
+      // Serialize back to string
+      const serializer = new XMLSerializer();
+      const processedSvg = serializer.serializeToString(processedDoc);
+      
+      // Create and download the file
+      const blob = new Blob([processedSvg], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'plotify-export.svg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Export failed. Please try again.');
+    }
   };
 
   const getSelectedActionTitle = () => {
@@ -115,7 +174,7 @@ export const OverviewScreen: React.FC = () => {
             <Button variant="secondary" className="w-full justify-start">
               Hatch
             </Button>
-            <Button variant="secondary" className="w-full justify-start">
+            <Button variant="secondary" className="w-full justify-start" onClick={handleExport}>
               Export
             </Button>
           </div>
