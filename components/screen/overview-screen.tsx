@@ -11,6 +11,7 @@ import {
 import { ImageHatchScreen } from "./image-hatch-screen";
 import { updateSvgMetadataWithHash } from "@/lib/svg-utils";
 import { getAssumedSize } from "@/lib/svg-layout";
+import { LayoutScreen } from "./layout-screen";
 
 // Example actions (replace or extend as needed)
 const actions = [
@@ -101,7 +102,9 @@ export const OverviewScreen: React.FC = () => {
     if (selectedAction === "hatch") {
       return <ImageHatchScreen onClose={handleDialogClose} setSvg={setSvg} />;
     }
-    
+    if (selectedAction === "layout") {
+      return <LayoutScreen onClose={handleDialogClose} setSvg={setSvg} svg={svg || ""} />;
+    }
     return (
       <div className="py-4">
         <p className="text-muted-foreground">
@@ -165,7 +168,7 @@ export const OverviewScreen: React.FC = () => {
         <div className="flex-1 p-6">
           <h3 className="text-sm font-medium mb-4">Actions</h3>
           <div className="space-y-3">
-            <Button variant="secondary" className="w-full justify-start">
+            <Button variant="secondary" className="w-full justify-start" onClick={() => handleActionClick("layout")}> 
               Lay Out
             </Button>
             <Button variant="secondary" className="w-full justify-start">

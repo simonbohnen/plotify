@@ -7,6 +7,8 @@ import os
 
 from hatched import hatched
 
+from api.layout import vpype_layout
+
 
 load_dotenv(".env.local")
 
@@ -87,7 +89,6 @@ async def layout(
     landscape: bool = Query(False, description="Use landscape orientation")
 ):
     from vpype import read_multilayer_svg
-    from vpype_cli import layout as vpype_layout
     
     # Save uploaded file to a temporary location
     tmp_path = await upload_file_to_temp(file, ".svg")
