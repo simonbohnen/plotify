@@ -16,7 +16,7 @@ import { LayoutScreen } from "./layout-screen";
 // Example actions (replace or extend as needed)
 const actions = [
   { key: "vectorize", title: "Vectorize Artwork" },
-  { key: "hatch", title: "Apply Hatching" },
+  { key: "hatch", title: "Hatch Image" },
   { key: "color", title: "Add Color" },
   { key: "export", title: "Export" },
 ];
@@ -33,11 +33,11 @@ export const OverviewScreen: React.FC = () => {
         // Parse the SVG string to a Document
         const parser = new DOMParser();
         const doc = parser.parseFromString(svg, 'image/svg+xml');
-        
+
         // Test the getAssumedSize function
         const assumedSize = getAssumedSize(doc);
         console.log('SVG Assumed Size:', assumedSize);
-        
+
         if (assumedSize) {
           console.log(`Detected size: ${assumedSize.size}, orientation: ${assumedSize.orientation}`);
         } else {
@@ -69,14 +69,14 @@ export const OverviewScreen: React.FC = () => {
       // Parse the SVG string to a Document
       const parser = new DOMParser();
       const doc = parser.parseFromString(svg, 'image/svg+xml');
-      
+
       // Process the document with our function
       const processedDoc = await updateSvgMetadataWithHash(doc);
-      
+
       // Serialize back to string
       const serializer = new XMLSerializer();
       const processedSvg = serializer.serializeToString(processedDoc);
-      
+
       // Create and download the file
       const blob = new Blob([processedSvg], { type: 'image/svg+xml' });
       const url = URL.createObjectURL(blob);
@@ -168,7 +168,7 @@ export const OverviewScreen: React.FC = () => {
         <div className="flex-1 p-6">
           <h3 className="text-sm font-medium mb-4">Actions</h3>
           <div className="space-y-3">
-            <Button variant="secondary" className="w-full justify-start" onClick={() => handleActionClick("layout")}> 
+            <Button variant="secondary" className="w-full justify-start" onClick={() => handleActionClick("layout")}>
               Lay Out
             </Button>
             <Button variant="secondary" className="w-full justify-start">
@@ -187,11 +187,6 @@ export const OverviewScreen: React.FC = () => {
       {/* Action Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContentNoClose className="w-[90vw] h-[90vh] max-w-none">
-          {selectedAction !== "hatch" && (
-            <DialogHeader>
-              <DialogTitle>{getSelectedActionTitle()}</DialogTitle>
-            </DialogHeader>
-          )}
           {renderDialogContent()}
         </DialogContentNoClose>
       </Dialog>
