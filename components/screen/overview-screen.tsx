@@ -4,10 +4,11 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogContent,
+  DialogContentNoClose,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ImageHatchScreen } from "./image-hatch-screen";
 
 // Example actions (replace or extend as needed)
 const actions = [
@@ -38,6 +39,20 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({ svg }) => {
   const getSelectedActionTitle = () => {
     const action = actions.find(a => a.key === selectedAction);
     return action?.title || "Action";
+  };
+
+  const renderDialogContent = () => {
+    if (selectedAction === "hatch") {
+      return <ImageHatchScreen onClose={handleDialogClose} />;
+    }
+    
+    return (
+      <div className="py-4">
+        <p className="text-muted-foreground">
+          This is a placeholder for the {getSelectedActionTitle().toLowerCase()} functionality.
+        </p>
+      </div>
+    );
   };
 
   return (
@@ -85,16 +100,14 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({ svg }) => {
 
       {/* Action Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{getSelectedActionTitle()}</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-muted-foreground">
-              This is a placeholder for the {getSelectedActionTitle().toLowerCase()} functionality.
-            </p>
-          </div>
-        </DialogContent>
+        <DialogContentNoClose className="w-[90vw] h-[90vh] max-w-none">
+          {selectedAction !== "hatch" && (
+            <DialogHeader>
+              <DialogTitle>{getSelectedActionTitle()}</DialogTitle>
+            </DialogHeader>
+          )}
+          {renderDialogContent()}
+        </DialogContentNoClose>
       </Dialog>
     </div>
   );

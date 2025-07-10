@@ -2,11 +2,29 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile, File, Response
 from shapely.geometry import MultiLineString
 import vpype
+from fastapi.middleware.cors import CORSMiddleware
+
 
 
 load_dotenv(".env.local")
 
 app = FastAPI()
+
+origins = [
+    "http://localhost.tiangolo.com",
+    "https://localhost.tiangolo.com",
+    "http://localhost",
+    "http://localhost:8080",
+    "http://localhost:3000"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # client = OpenAI(
 #     api_key=os.environ.get("OPENAI_API_KEY"),
@@ -24,6 +42,13 @@ from hatched import hatched
 if __name__ == "__main__":
     image_path = pathlib.Path(__file__).parent / "skull.png"
     hatched.hatch(str(image_path), hatch_pitch=5, levels=(20, 100, 180), blur_radius=1)
+
+@app.post("/api/hatch-mock")
+async def hatch_mock(file: UploadFile = File(...)):
+    # Read the response.svg file
+    with open("api/response.svg", "r") as f:
+        svg_content = f.read()
+    return Response(content=svg_content, media_type="image/svg+xml")
 
 @app.post("/api/hatch")
 async def hatch_image(file: UploadFile = File(...)):
