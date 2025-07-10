@@ -6,9 +6,10 @@ import { Upload, Image, Settings } from "lucide-react";
 
 interface ImageHatchScreenProps {
   onClose?: () => void;
+  setSvg?: (svg: string) => void;
 }
 
-export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose }) => {
+export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, setSvg }) => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [svgResult, setSvgResult] = useState<string | null>(null);
@@ -81,42 +82,56 @@ export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose }) =
           <h2 className="text-lg font-semibold">Image Hatching</h2>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            onClick={handleProcessImage}
-            disabled={!uploadedImage || isProcessing}
-            className=""
-            variant="default"
-            size="sm"
-          >
-            {isProcessing ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Processing...
-              </>
-            ) : (
-              <>Apply Hatching</>
-            )}
-          </Button>
+          {!svgResult ? (
+            <Button
+              onClick={handleProcessImage}
+              disabled={!uploadedImage || isProcessing}
+              className=""
+              variant="default"
+              size="sm"
+            >
+              {isProcessing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Processing...
+                </>
+              ) : (
+                <>Apply Hatching</>
+              )}
+            </Button>
+          ) : (
+            <Button
+              onClick={() => {
+                if (setSvg && svgResult) {
+                  setSvg(svgResult);
+                }
+                onClose?.();
+              }}
+              className=""
+              variant="default"
+              size="sm"
+            >
+              Continue design
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={handleReset}>
             Reset
           </Button>
           {onClose && (
             <Button variant="outline" size="sm" onClick={onClose}>
-              Close
+              Cancel
             </Button>
           )}
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-6 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
           {/* Upload Area */}
-          <div className="flex flex-col">
-            <h3 className="text-md font-medium mb-4">Upload Image</h3>
-            
+          <div className="flex flex-col h-full overflow-hidden">            
             {!uploadedImage ? (
-              <div className="flex-1 border-2 border-dashed border-border rounded-lg p-8 flex flex-col items-center justify-center">
+              <div className="flex-1 border-2 border-dashed border-border rounded-lg p-8 flex flex-col items-center justify-center overflow-hidden">
                 <Upload className="w-12 h-12 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground text-center mb-4">
                   Drag and drop an image here, or click to browse
@@ -132,30 +147,31 @@ export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose }) =
                   className="hidden"
                 />
               </div>
-            ) : (
-              <div className="flex-1 border border-border rounded-lg p-4">
-                <div className="relative w-full h-full min-h-[300px]">
-                  <img
-                    src={uploadedImage}
-                    alt="Uploaded image"
-                    className="w-full h-full object-contain rounded"
-                  />
+                          ) : (
+                <div className="flex-1 border border-border rounded-lg p-4 flex flex-col overflow-hidden">
+                  <div className="flex-1 min-h-0 overflow-hidden">
+                    <div className="w-full h-full flex items-center justify-center overflow-hidden">
+                      <img
+                        src={uploadedImage}
+                        alt="Uploaded image"
+                        className="w-full h-full object-contain rounded"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4 flex gap-2 flex-shrink-0">
+                    <Button onClick={handleUploadClick} variant="outline" size="sm">
+                      Change Image
+                    </Button>
+                    <Button onClick={handleReset} variant="outline" size="sm">
+                      Remove
+                    </Button>
+                  </div>
                 </div>
-                <div className="mt-4 flex gap-2">
-                  <Button onClick={handleUploadClick} variant="outline" size="sm">
-                    Change Image
-                  </Button>
-                  <Button onClick={handleReset} variant="outline" size="sm">
-                    Remove
-                  </Button>
-                </div>
-              </div>
-            )}
+              )}
           </div>
 
           {/* Preview Area */}
           <div className="flex flex-col">
-            <h4 className="text-sm font-medium mb-2">Preview</h4>
             <div className="border border-border rounded-lg p-4 min-h-[200px] bg-muted/20 flex items-center justify-center">
               {isProcessing && (
                 <div className="flex flex-col items-center">

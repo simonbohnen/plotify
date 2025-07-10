@@ -22,7 +22,8 @@ interface OverviewScreenProps {
   svg?: string;
 }
 
-export const OverviewScreen: React.FC<OverviewScreenProps> = ({ svg }) => {
+export const OverviewScreen: React.FC<OverviewScreenProps> = ({ svg: initialSvg }) => {
+  const [svg, setSvg] = useState<string | undefined>(initialSvg);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -43,7 +44,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({ svg }) => {
 
   const renderDialogContent = () => {
     if (selectedAction === "hatch") {
-      return <ImageHatchScreen onClose={handleDialogClose} />;
+      return <ImageHatchScreen onClose={handleDialogClose} setSvg={setSvg} />;
     }
     
     return (
