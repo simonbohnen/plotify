@@ -57,45 +57,68 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({ svg: initialSvg 
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-background">
-      {/* Status Bar */}
-      <div className="w-full bg-card border-b border-border py-6 px-8 min-h-[88px] flex items-center justify-between">
-        <span className="font-semibold text-lg">Overview</span>
-        <div className="flex items-center gap-3">
-          {svg && (
-            <div className="w-20 h-20 bg-white border border-border rounded flex items-center justify-center overflow-hidden">
-              {/* Render SVG as an <img> with object-contain to ensure scaling */}
-              <img
-                src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`}
-                alt="SVG Preview"
-                className="w-16 h-16 object-contain"
-                draggable={false}
-              />
-            </div>
-          )}
-          <Button variant="secondary">Lay Out</Button>
-          <Button variant="secondary">Select Tools</Button>
-          <Button variant="secondary">Hatch</Button>
-          <Button variant="secondary">Export</Button>
+    <div className="w-full min-h-screen flex bg-background">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <div className="w-full bg-card border-b border-border py-6 px-8 min-h-[88px] flex items-center">
+          <span className="font-semibold text-lg">Overview</span>
+        </div>
+
+        {/* Main Area: Actions Grid */}
+        <div className="flex-1 p-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-4xl">
+            {actions.map((action) => (
+              <div
+                key={action.key}
+                className="flex flex-col items-center bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => handleActionClick(action.key)}
+              >
+                {/* Preview Image Placeholder */}
+                <div className="w-24 h-24 bg-muted rounded-md mb-3 flex items-center justify-center">
+                  {/* Empty for now */}
+                </div>
+                <span className="mt-1 text-base font-medium text-center">{action.title}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Main Area: Actions Grid */}
-      <div className="flex-1 p-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-4xl">
-          {actions.map((action) => (
-            <div
-              key={action.key}
-              className="flex flex-col items-center bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => handleActionClick(action.key)}
-            >
-              {/* Preview Image Placeholder */}
-              <div className="w-24 h-24 bg-muted rounded-md mb-3 flex items-center justify-center">
-                {/* Empty for now */}
-              </div>
-              <span className="mt-1 text-base font-medium text-center">{action.title}</span>
+      {/* Right Sidebar */}
+      <div className="w-80 bg-card border-l border-border flex flex-col">
+        {/* SVG Preview */}
+        {svg && (
+          <div className="p-6 border-b border-border">
+            <h3 className="text-sm font-medium mb-4">Current Design</h3>
+            <div className="w-full h-64 bg-white border border-border rounded flex items-center justify-center overflow-hidden">
+              <img
+                src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`}
+                alt="SVG Preview"
+                className="w-full h-full object-contain"
+                draggable={false}
+              />
             </div>
-          ))}
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex-1 p-6">
+          <h3 className="text-sm font-medium mb-4">Actions</h3>
+          <div className="space-y-3">
+            <Button variant="secondary" className="w-full justify-start">
+              Lay Out
+            </Button>
+            <Button variant="secondary" className="w-full justify-start">
+              Select Tools
+            </Button>
+            <Button variant="secondary" className="w-full justify-start">
+              Hatch
+            </Button>
+            <Button variant="secondary" className="w-full justify-start">
+              Export
+            </Button>
+          </div>
         </div>
       </div>
 
