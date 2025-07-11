@@ -4,6 +4,10 @@ from shapely.geometry import MultiLineString
 import vpype
 from fastapi.middleware.cors import CORSMiddleware
 import os
+import tempfile
+import toml
+import vpype_cli
+from vpype import read_svg_by_attributes
 
 from hatched import hatched
 
@@ -87,26 +91,24 @@ async def layout(
     width: float = Query(None, description="Width in mm"),
     height: float = Query(None, description="Height in mm"),
     landscape: bool = Query(False, description="Use landscape orientation")
-):
-    from vpype import read_multilayer_svg
-    
+):    
     # Save uploaded file to a temporary location
     tmp_path = await upload_file_to_temp(file, ".svg")
 
     # Read the SVG as a multilayer document
-    document = read_multilayer_svg(tmp_path, quantization=0.4, crop=True)
+    document = read_svg_by_attributes(tmp_path, ["stroke"], quantization=0.4, crop=True)
 
     # Clean up temp file
     os.remove(tmp_path)
 
-    size_tuple = (width, height)
+    size_tuple = (width * 3.7795275591, height * 3.7795275591)
 
     # Apply layout using vpype_cli layout function
     document = vpype_layout(
         document=document,
         size=size_tuple,
         landscape=landscape,
-        margin=margin,
+        margin=margin * 3.7795275591,
         align="center",
         valign="center",
         no_bbox=False
@@ -116,9 +118,7 @@ async def layout(
     return document_to_svg_response(document)
 
 @app.post("/api/stroke-colors-to-layers")
-async def stroke_to_layers(file: UploadFile = File(...)):
-    from vpype import read_svg_by_attributes
-    
+async def stroke_to_layers(file: UploadFile = File(...)):    
     # Save uploaded file to a temporary location
     tmp_path = await upload_file_to_temp(file, ".svg")
 
@@ -130,3 +130,59 @@ async def stroke_to_layers(file: UploadFile = File(...)):
 
     # Return SVG as XML
     return document_to_svg_response(document)
+
+@app.post("/api/assign-pens")
+async def assign_pens(
+    file: UploadFile = File(...),
+    pen_ids: list[str] = Query(..., description="List of pen identifiers for each layer")
+):
+    # Save uploaded file to a temporary location
+    tmp_path = await upload_file_to_temp(file, ".svg")
+
+    # Create a temporary vpype config file
+    layers = []
+    for idx, pen_id in enumerate(pen_ids):
+        pen_info = PEN_INFO.get(pen_id, {"color": "#000000", "pen_width": "0.3mm"})
+        layer = {
+            "layer_id": idx + 1,  # 1-based layer index
+            "name": pen_id,
+            "color": pen_info["color"],
+            "pen_width": pen_info["pen_width"],
+        }
+        layers.append(layer)
+    config_dict = {
+        "pen_config": {
+            "my_pen_config": {
+                "layers": layers
+            }
+        }
+    }
+    # Write config to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".toml", mode="w") as config_file:
+        toml.dump(config_dict, config_file)
+        config_path = config_file.name
+    # (For now, do not use config_path further)
+
+    # Use vpype cli execute to assign pens to layers (for now, just run 'read')
+    new_doc = vpype_cli.execute(pipeline=f"read --simplify {tmp_path} pens my_pen_config", global_opt=f"--config {config_path}")
+
+    # Clean up temp file
+    os.remove(tmp_path)
+
+    # Return the SVG as XML
+    return document_to_svg_response(new_doc)
+
+# Mapping of pen identifiers to color and pen width
+PEN_INFO = {
+    "felt_tip_Black": {"color": "#222222", "pen_width": "0.7mm"},
+    "felt_tip_Brown": {"color": "#8B5C2A", "pen_width": "0.7mm"},
+    "felt_tip_Red": {"color": "#C0392B", "pen_width": "0.7mm"},
+    "felt_tip_Blue": {"color": "#2980B9", "pen_width": "0.7mm"},
+    "technical_pen_Black": {"color": "#111111", "pen_width": "0.15mm"},
+    "technical_pen_Gray": {"color": "#888888", "pen_width": "0.15mm"},
+    "technical_pen_Sepia": {"color": "#704214", "pen_width": "0.15mm"},
+    "gel_pen_Black": {"color": "#222222", "pen_width": "0.5mm"},
+    "gel_pen_Blue": {"color": "#1E90FF", "pen_width": "0.5mm"},
+    "gel_pen_Green": {"color": "#27AE60", "pen_width": "0.5mm"},
+    "gel_pen_Pink": {"color": "#FF69B4", "pen_width": "0.5mm"},
+}

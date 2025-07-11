@@ -10,10 +10,51 @@ interface ToolSelectionScreenProps {
   svg: string;
 }
 
-type ToolType = "pen" | "brush";
+// Tool categories and their color options
+const TOOL_CATEGORIES = [
+  {
+    key: "felt_tip",
+    label: "Felt Tip",
+    colors: [
+      { name: "Black", value: "#222222" },
+      { name: "Brown", value: "#8B5C2A" },
+      { name: "Red", value: "#C0392B" },
+      { name: "Blue", value: "#2980B9" },
+    ],
+  },
+  {
+    key: "technical_pen",
+    label: "Technical Pen",
+    colors: [
+      { name: "Black", value: "#111111" },
+      { name: "Gray", value: "#888888" },
+      { name: "Sepia", value: "#704214" },
+    ],
+  },
+  {
+    key: "gel_pen",
+    label: "Gel Pen",
+    colors: [
+      { name: "Black", value: "#222222" },
+      { name: "Blue", value: "#1E90FF" },
+      { name: "Green", value: "#27AE60" },
+      { name: "Pink", value: "#FF69B4" },
+    ],
+  },
+];
+
+type ToolCategoryKey = typeof TOOL_CATEGORIES[number]["key"];
+
+interface ToolColor {
+  name: string;
+  value: string;
+}
 
 interface ColorToolMapping {
-  [color: string]: ToolType;
+  [color: string]: {
+    tool: ToolCategoryKey;
+    color: string; // rgb/hex value
+  };
 }
 
 export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({ 
@@ -53,7 +94,10 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
           const newMapping: ColorToolMapping = {};
           colorList.forEach(color => {
             if (!(color in colorToolMapping)) {
-              newMapping[color] = "pen"; // Default to pen
+              // Default: first tool and first color in that tool
+              const defaultTool = TOOL_CATEGORIES[0].key;
+              const defaultColor = TOOL_CATEGORIES[0].colors[0].value;
+              newMapping[color] = { tool: defaultTool, color: defaultColor };
             } else {
               newMapping[color] = colorToolMapping[color];
             }
@@ -66,16 +110,51 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
     }
   }, [svg]);
 
-  const handleToolChange = (color: string, tool: ToolType) => {
+  const handleToolChange = (svgColor: string, tool: ToolCategoryKey) => {
+    const toolObj = TOOL_CATEGORIES.find(t => t.key === tool);
+    const firstColor = toolObj ? toolObj.colors[0].value : '';
     setColorToolMapping(prev => ({
       ...prev,
-      [color]: tool
+      [svgColor]: {
+        tool,
+        color: firstColor,
+      },
     }));
   };
 
-  const handleContinue = () => {
+  const handleColorChange = (svgColor: string, color: string) => {
+    setColorToolMapping(prev => ({
+      ...prev,
+      [svgColor]: {
+        ...prev[svgColor],
+        color,
+      },
+    }));
+  };
+
+  const handleContinue = async () => {
     // Here you could process the color-tool mappings
     console.log('Color tool mappings:', colorToolMapping);
+    const formData = new FormData();
+    const svgBlob = new Blob([svg], { type: 'image/svg+xml' });
+    formData.append('file', svgBlob, 'input.svg');
+
+    // Generate pen_ids by combining tool key and color name
+    const penIds = colors.map(svgColor => {
+      const mapping = colorToolMapping[svgColor];
+      const toolObj = TOOL_CATEGORIES.find(t => t.key === mapping.tool) || TOOL_CATEGORIES[0];
+      const colorObj = toolObj.colors.find(c => c.value === mapping.color) || toolObj.colors[0];
+      return `${mapping.tool}_${colorObj.name}`;
+    });
+    const params = new URLSearchParams();
+    penIds.forEach(id => params.append('pen_ids', id));
+
+    const response = await fetch(`http://localhost:8000/api/assign-pens?${params.toString()}`, {
+      method: 'POST',
+      body: formData,
+    });
+    const newSvg = await response.text();
+    setSvg?.(newSvg);
     onClose?.();
   };
 
@@ -130,7 +209,7 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
           </div>
 
           {/* Right Panel - Color Tools */}
-          <div className="w-80 flex flex-col">
+          <div className="w-96 flex flex-col">
             <h3 className="text-sm font-medium mb-4">Color Tools</h3>
             
             {colors.length === 0 ? (
@@ -139,36 +218,51 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
               </div>
             ) : (
               <div className="space-y-4">
-                {colors.map((color) => (
-                  <div key={color} className="flex items-center gap-3 p-3 border rounded bg-card">
-                    {/* Color Circle */}
-                    <div 
-                      className="w-8 h-8 rounded-full border border-border flex-shrink-0"
-                      style={{ 
-                        backgroundColor: color,
-                        // Add a subtle border for light colors
-                        boxShadow: color.toLowerCase() === '#ffffff' || color.toLowerCase() === 'white' 
-                          ? 'inset 0 0 0 1px #e5e7eb' 
-                          : 'none'
-                      }}
-                    />
-                    
-                    {/* Color Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{color}</p>
+                {colors.map((svgColor) => {
+                  const mapping = colorToolMapping[svgColor] || { tool: TOOL_CATEGORIES[0].key, color: TOOL_CATEGORIES[0].colors[0].value };
+                  const toolObj = TOOL_CATEGORIES.find(t => t.key === mapping.tool) || TOOL_CATEGORIES[0];
+                  const colorObj = toolObj.colors.find(c => c.value === mapping.color) || toolObj.colors[0];
+                  return (
+                    <div key={svgColor} className="flex items-center gap-3 p-3 border rounded bg-card">
+                      {/* SVG Color Swatch */}
+                      <div 
+                        className="w-8 h-8 rounded-full border border-border flex-shrink-0"
+                        style={{ 
+                          backgroundColor: svgColor,
+                          boxShadow: svgColor.toLowerCase() === '#ffffff' || svgColor.toLowerCase() === 'white' 
+                            ? 'inset 0 0 0 1px #e5e7eb' 
+                            : 'none'
+                        }}
+                      />
+                      {/* Tool Category Dropdown */}
+                      <select
+                        value={mapping.tool}
+                        onChange={e => handleToolChange(svgColor, e.target.value as ToolCategoryKey)}
+                        className="text-sm border rounded px-2 py-1 bg-background ml-2"
+                      >
+                        {TOOL_CATEGORIES.map(tool => (
+                          <option key={tool.key} value={tool.key}>{tool.label}</option>
+                        ))}
+                      </select>
+                      {/* Tool Color Dropdown */}
+                      <select
+                        value={mapping.color}
+                        onChange={e => handleColorChange(svgColor, e.target.value)}
+                        className="text-sm border rounded px-2 py-1 bg-background ml-2"
+                      >
+                        {toolObj.colors.map(color => (
+                          <option key={color.value} value={color.value}>{color.name}</option>
+                        ))}
+                      </select>
+                      {/* Tool Color Swatch */}
+                      <div 
+                        className="w-6 h-6 rounded-full border border-border ml-2"
+                        style={{ backgroundColor: colorObj.value }}
+                        title={colorObj.name}
+                      />
                     </div>
-                    
-                    {/* Tool Dropdown */}
-                    <select
-                      value={colorToolMapping[color] || "pen"}
-                      onChange={(e) => handleToolChange(color, e.target.value as ToolType)}
-                      className="text-sm border rounded px-2 py-1 bg-background"
-                    >
-                      <option value="pen">Pen</option>
-                      <option value="brush">Brush</option>
-                    </select>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
             
@@ -179,10 +273,13 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>{colors.length} color{colors.length !== 1 ? 's' : ''} found</p>
                   <p>
-                    {Object.values(colorToolMapping).filter(tool => tool === 'pen').length} pen tool{Object.values(colorToolMapping).filter(tool => tool === 'pen').length !== 1 ? 's' : ''}
+                    {Object.values(colorToolMapping).filter(mapping => mapping.tool === 'felt_tip').length} felt tip
                   </p>
                   <p>
-                    {Object.values(colorToolMapping).filter(tool => tool === 'brush').length} brush tool{Object.values(colorToolMapping).filter(tool => tool === 'brush').length !== 1 ? 's' : ''}
+                    {Object.values(colorToolMapping).filter(mapping => mapping.tool === 'technical_pen').length} technical pen
+                  </p>
+                  <p>
+                    {Object.values(colorToolMapping).filter(mapping => mapping.tool === 'gel_pen').length} gel pen
                   </p>
                 </div>
               </div>

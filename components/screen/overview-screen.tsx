@@ -149,7 +149,7 @@ export const OverviewScreen: React.FC = () => {
               <img
                 src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`}
                 alt="SVG Preview"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain border border-border"
                 draggable={false}
               />
             </div>
@@ -164,14 +164,14 @@ export const OverviewScreen: React.FC = () => {
         <div className="flex-1 p-6">
           <h3 className="text-sm font-medium mb-4">Actions</h3>
           <div className="space-y-3">
+            <Button variant="secondary" className="w-full justify-start">
+              Hatch
+            </Button>
             <Button variant="secondary" className="w-full justify-start" onClick={() => handleActionClick("layout")}>
               Lay Out
             </Button>
             <Button variant="secondary" className="w-full justify-start" onClick={() => handleActionClick("tools")}>
               Select Tools
-            </Button>
-            <Button variant="secondary" className="w-full justify-start">
-              Hatch
             </Button>
             <Button variant="secondary" className="w-full justify-start" onClick={handleExport}>
               Export
