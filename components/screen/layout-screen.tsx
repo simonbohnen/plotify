@@ -73,7 +73,6 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({ onClose, setSvg, svg
       }
       const svgTextResult = await response.text();
       setSvgResult(svgTextResult);
-      setSvg?.(svgTextResult);
     } catch (err) {
       setError("Failed to process layout. Please try again.");
     } finally {

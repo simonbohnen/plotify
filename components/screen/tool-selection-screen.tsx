@@ -159,7 +159,7 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-2">
@@ -186,17 +186,15 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
         <div className="flex gap-6 h-full">
           {/* Left Panel - SVG Preview */}
           <div className="flex-1 border rounded bg-white p-4">
-            <h3 className="text-sm font-medium mb-4">Current Design</h3>
             <div className="w-full h-full min-h-[400px] flex items-center justify-center">
               {svg ? (
-                <div className="w-64 h-full flex items-center justify-center overflow-hidden">
-                  <img
-                    src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`}
-                    alt="SVG Preview"
-                    className="w-full h-full object-contain border-2 border-dashed border-muted-foreground rounded"
-                    draggable={false}
-                  />
-                </div>
+                <img
+                src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`}
+                alt="SVG Preview"
+                className="object-contain border-2 border-dashed border-muted-foreground rounded"
+                style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }}
+                draggable={false}
+                />
               ) : (
                 <div className="text-muted-foreground text-center">
                   <div className="w-32 h-32 border-2 border-dashed border-muted-foreground rounded flex items-center justify-center mb-2">

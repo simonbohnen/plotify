@@ -95,27 +95,13 @@ async def layout(
     # Save uploaded file to a temporary location
     tmp_path = await upload_file_to_temp(file, ".svg")
 
-    # Read the SVG as a multilayer document
-    document = read_svg_by_attributes(tmp_path, ["stroke"], quantization=0.4, crop=True)
+    new_doc = vpype_cli.execute(pipeline=f"read --simplify --attr stroke {tmp_path} layout -m {margin}mm {'-l ' if landscape else ''}{width}mmx{height}mm")
 
     # Clean up temp file
     os.remove(tmp_path)
 
-    size_tuple = (width * 3.7795275591, height * 3.7795275591)
-
-    # Apply layout using vpype_cli layout function
-    document = vpype_layout(
-        document=document,
-        size=size_tuple,
-        landscape=landscape,
-        margin=margin * 3.7795275591,
-        align="center",
-        valign="center",
-        no_bbox=False
-    )
-
     # Return SVG as XML
-    return document_to_svg_response(document)
+    return document_to_svg_response(new_doc)
 
 @app.post("/api/stroke-colors-to-layers")
 async def stroke_to_layers(file: UploadFile = File(...)):    

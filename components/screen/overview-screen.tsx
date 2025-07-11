@@ -25,20 +25,48 @@ const actions = [
 
 export const OverviewScreen: React.FC = () => {
   const [svg, setSvg] = useState<string | undefined>(undefined);
+  const [previewSVG, setPreviewSVG] = useState<string | undefined>(undefined);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // useEffect to extract and print colors when SVG changes
+  // Ensure preserveAspectRatio is always set to 'xMidYMid meet' on the SVG
   useEffect(() => {
-    if (svg) {
-      try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(svg, 'image/svg+xml');
-        const colors = getColors(doc);
-        console.log('Extracted stroke colors from SVG:', colors);
-      } catch (error) {
-        console.error('Error extracting colors from SVG:', error);
+    if (!svg) {
+      setPreviewSVG(undefined);
+      return;
+    }
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svg, 'image/svg+xml');
+      const svgElem = doc.documentElement;
+      if (svgElem.tagName === 'svg') {
+        let needsUpdate = false;
+        // preserveAspectRatio
+        const currentPAR = svgElem.getAttribute('preserveAspectRatio');
+        if (currentPAR !== 'xMidYMid meet') {
+          svgElem.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+          needsUpdate = true;
+        }
+        // style with width, height, and border
+        const currentStyle = svgElem.getAttribute('style') || '';
+        const newStyle = 'width:auto;height:auto;max-width:100%;max-height:16rem;';
+        if (!currentStyle.includes('width:auto') || !currentStyle.includes('height:auto') || !currentStyle.includes('max-width:100%') || !currentStyle.includes('max-height:100%') || !currentStyle.includes('border:1px solid black')) {
+          svgElem.setAttribute('style', newStyle + currentStyle);
+          needsUpdate = true;
+        }
+        if (needsUpdate) {
+          const serializer = new XMLSerializer();
+          const updated = serializer.serializeToString(doc);
+          setPreviewSVG(updated);
+        } else {
+          setPreviewSVG(svg);
+        }
+      } else {
+        setPreviewSVG(svg);
       }
+    } catch (e) {
+      // Ignore parse errors
+      setPreviewSVG(svg);
     }
   }, [svg]);
 
@@ -115,7 +143,7 @@ export const OverviewScreen: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="w-full bg-card border-b border-border py-4 px-8 min-h-[64px] flex items-center">
+        <div className="w-full bg-card py-4 px-8 min-h-[64px] flex items-center">
           <span className="font-semibold text-lg">Plotify</span>
         </div>
 
@@ -144,13 +172,12 @@ export const OverviewScreen: React.FC = () => {
         {/* SVG Preview */}
         <div className="p-6 border-b border-border">
           <h3 className="text-sm font-medium mb-4">Current Design</h3>
-          {svg ? (
-            <div className="w-full h-64 bg-white border border-border rounded flex items-center justify-center overflow-hidden">
-              <img
-                src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`}
-                alt="SVG Preview"
-                className="w-full h-full object-contain border border-border"
-                draggable={false}
+          {previewSVG ? (
+            <div className="w-full h-64 max-h-64 bg-white flex items-center justify-center overflow-hidden">
+              <div
+                className="w-auto h-auto max-w-full max-h-64 object-contain border border-border"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                dangerouslySetInnerHTML={{ __html: previewSVG }}
               />
             </div>
           ) : (
