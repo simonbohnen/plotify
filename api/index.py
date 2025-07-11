@@ -51,7 +51,7 @@ async def upload_file_to_temp(upload_file: UploadFile, suffix: str = None) -> st
 @app.post("/api/hatch-mock")
 async def hatch_mock(file: UploadFile = File(...)):
     # Read the response.svg file
-    with open("api/ellie_simplified.svg", "r") as f:
+    with open("api/example_no_fill.svg", "r") as f:
         svg_content = f.read()
     return Response(content=svg_content, media_type="image/svg+xml")
 
@@ -94,7 +94,7 @@ async def layout(
     tmp_path = await upload_file_to_temp(file, ".svg")
 
     # Read the SVG as a multilayer document
-    document = read_multilayer_svg(tmp_path, quantization=0.1, crop=True)
+    document = read_multilayer_svg(tmp_path, quantization=0.4, crop=True)
 
     # Clean up temp file
     os.remove(tmp_path)
@@ -111,6 +111,22 @@ async def layout(
         valign="center",
         no_bbox=False
     )
+
+    # Return SVG as XML
+    return document_to_svg_response(document)
+
+@app.post("/api/stroke-colors-to-layers")
+async def stroke_to_layers(file: UploadFile = File(...)):
+    from vpype import read_svg_by_attributes
+    
+    # Save uploaded file to a temporary location
+    tmp_path = await upload_file_to_temp(file, ".svg")
+
+    # Read the SVG as a multilayer document
+    document = read_svg_by_attributes(tmp_path, ["stroke"], quantization=0.4, crop=True)
+
+    # Clean up temp file
+    os.remove(tmp_path)
 
     # Return SVG as XML
     return document_to_svg_response(document)

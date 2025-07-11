@@ -1,0 +1,9 @@
+[pen_config.my_pen_config]  # my_pen_config is this pen configuration's name
+layers = [
+    # for each layer, a layer_id must be provided, but name, color and
+    # pen_width are optional
+    { layer_id = 1, name = "black layer", color = "black", pen_width = "0.15mm" },
+
+    # any valid CSS color string and length unit may be used
+    { layer_id = 2, name = "red layer", color = "#e00", pen_width = "0.05in" }
+]

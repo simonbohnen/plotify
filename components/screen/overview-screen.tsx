@@ -12,6 +12,8 @@ import { ImageHatchScreen } from "./image-hatch-screen";
 import { updateSvgMetadataWithHash } from "@/lib/svg-utils";
 import { getAssumedSize } from "@/lib/svg-layout";
 import { LayoutScreen } from "./layout-screen";
+import { ToolSelectionScreen } from "./tool-selection-screen";
+import { getColors } from "@/lib/svg-color";
 
 // Example actions (replace or extend as needed)
 const actions = [
@@ -26,25 +28,16 @@ export const OverviewScreen: React.FC = () => {
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Test getAssumedSize when SVG changes
+  // useEffect to extract and print colors when SVG changes
   useEffect(() => {
     if (svg) {
       try {
-        // Parse the SVG string to a Document
         const parser = new DOMParser();
         const doc = parser.parseFromString(svg, 'image/svg+xml');
-
-        // Test the getAssumedSize function
-        const assumedSize = getAssumedSize(doc);
-        console.log('SVG Assumed Size:', assumedSize);
-
-        if (assumedSize) {
-          console.log(`Detected size: ${assumedSize.size}, orientation: ${assumedSize.orientation}`);
-        } else {
-          console.log('No matching size found for this SVG');
-        }
+        const colors = getColors(doc);
+        console.log('Extracted stroke colors from SVG:', colors);
       } catch (error) {
-        console.error('Error testing getAssumedSize:', error);
+        console.error('Error extracting colors from SVG:', error);
       }
     }
   }, [svg]);
@@ -104,6 +97,9 @@ export const OverviewScreen: React.FC = () => {
     }
     if (selectedAction === "layout") {
       return <LayoutScreen onClose={handleDialogClose} setSvg={setSvg} svg={svg || ""} />;
+    }
+    if (selectedAction === "tools") {
+      return <ToolSelectionScreen onClose={handleDialogClose} setSvg={setSvg} svg={svg || ""} />;
     }
     return (
       <div className="py-4">
@@ -171,7 +167,7 @@ export const OverviewScreen: React.FC = () => {
             <Button variant="secondary" className="w-full justify-start" onClick={() => handleActionClick("layout")}>
               Lay Out
             </Button>
-            <Button variant="secondary" className="w-full justify-start">
+            <Button variant="secondary" className="w-full justify-start" onClick={() => handleActionClick("tools")}>
               Select Tools
             </Button>
             <Button variant="secondary" className="w-full justify-start">
