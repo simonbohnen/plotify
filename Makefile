@@ -16,7 +16,7 @@ setup-ecr:
 	cd infra/setup && terraform init && terraform apply -auto-approve
 
 deploy-container:
-	cd api && sh deploy.sh
+	cd plotify-api && sh deploy.sh
 
 deploy-service:
 	cd infra/app && terraform init && terraform apply -auto-approve
