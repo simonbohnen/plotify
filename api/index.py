@@ -11,9 +11,6 @@ from vpype import read_svg_by_attributes
 
 from hatched import hatched
 
-from api.layout import vpype_layout
-
-
 load_dotenv(".env.local")
 
 app = FastAPI()
@@ -55,7 +52,7 @@ async def upload_file_to_temp(upload_file: UploadFile, suffix: str = None) -> st
 @app.post("/api/hatch-mock")
 async def hatch_mock(file: UploadFile = File(...)):
     # Read the response.svg file
-    with open("api/example_no_fill.svg", "r") as f:
+    with open("example_no_fill.svg", "r") as f:
         svg_content = f.read()
     return Response(content=svg_content, media_type="image/svg+xml")
 
