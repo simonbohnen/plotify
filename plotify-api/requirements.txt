@@ -23,7 +23,8 @@ watchfiles==0.22.0
 websockets==12.0
 hatched==0.2.0
 shapely<2.0
-opencv-python<4.0
+opencv-python-headless<4.0
 numpy<2.0
 vpype
 toml
+git+https://github.com/serycjon/vpype-flow-imager.git#egg=vpype-flow-imager[all]
