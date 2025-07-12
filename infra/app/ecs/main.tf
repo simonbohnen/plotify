@@ -53,8 +53,47 @@ resource "aws_lb_listener" "http" {
   }
   depends_on = [aws_lb_target_group.this]
 }
+
+# SSL Certificate for ELB domain
+# resource "aws_acm_certificate" "this" {
+#   domain_name       = aws_lb.this.dns_name
+#   validation_method = "DNS"
+  
+#   lifecycle {
+#     create_before_destroy = true
+#   }
+# }
+
+# HTTPS Listener
+resource "aws_lb_listener" "https" {
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = "arn:aws:acm:eu-central-1:230342277603:certificate/2d939088-b78e-4074-8af2-f98e7cdd456c"
+  load_balancer_arn = aws_lb.this.arn
+  default_action {
+    target_group_arn = aws_lb_target_group.this.arn
+    type             = "forward"
+  }
+  depends_on = [aws_lb_target_group.this]
+}
+
 resource "aws_lb_listener_rule" "this" {
   listener_arn = aws_lb_listener.http.arn
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.this.arn
+  }
+  condition {
+    path_pattern {
+      values = ["*"]
+    }
+  }
+}
+
+# HTTPS Listener Rule
+resource "aws_lb_listener_rule" "https" {
+  listener_arn = aws_lb_listener.https.arn
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.this.arn
