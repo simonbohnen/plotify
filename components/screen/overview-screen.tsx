@@ -17,10 +17,7 @@ import { getColors } from "@/lib/svg-color";
 
 // Example actions (replace or extend as needed)
 const actions = [
-  { key: "vectorize", title: "Vectorize Artwork" },
   { key: "hatch", title: "Hatch Image" },
-  { key: "color", title: "Add Color" },
-  { key: "export", title: "Export" },
 ];
 
 export const OverviewScreen: React.FC = () => {
