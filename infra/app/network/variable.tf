@@ -10,7 +10,7 @@ variable "vpc_cidr_block" {
 }
 variable "availability_zones" {
   type    = list(string)
-  default = ["us-east-1a", "us-east-1f"]
+  default = ["eu-central-1a", "eu-central-1b"]
 }
 variable "public_cidr_blocks" {
   type    = list(string)

@@ -120,7 +120,7 @@ resource "aws_ecs_task_definition" "api" {
     {
       name    = "${var.app_name}-api-container"
       image   = "${var.image}"
-      command = ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+      command = ["fastapi", "run", "--port", "80", "index.py"]
       portMappings = [
         {
           hostPort      = 80

@@ -1,3 +1,16 @@
+To deploy
+
+```
+make deploy-container
+make deploy-service
+```
+
+to destroy
+
+- change desired task count to 0
+
+
+
 # How to use this Repo
 ## Warning
 - Always make sure to destroy your API Service. Forgetting to do so could incur a large AWS fee
