@@ -154,7 +154,8 @@ export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, set
                       <img
                         src={uploadedImage}
                         alt="Uploaded image"
-                        className="w-full h-full object-contain rounded"
+                        className="w-full object-contain rounded"
+                        style={{ maxHeight: '16rem' }}
                       />
                     </div>
                   </div>

@@ -38,3 +38,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+*.venv
+*__pycache__
+*.env
+*.env.sh
+*backend.tf
+*.terraform*
+*terraform.*
