@@ -32,10 +32,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# client = OpenAI(
-#     api_key=os.environ.get("OPENAI_API_KEY"),
-# )
-
 async def upload_file_to_temp(upload_file: UploadFile, suffix: str = None) -> str:
     import tempfile
     
