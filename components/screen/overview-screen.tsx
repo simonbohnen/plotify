@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ImageHatchScreen } from "./image-hatch-screen";
-import { updateSvgMetadataWithHash } from "@/lib/svg-utils";
+import { updateSvgMetadataWithHash, nodeToDocument, setSvgDisplayAttributes } from "@/lib/svg-utils";
 import { getAssumedSize } from "@/lib/svg-layout";
 import { LayoutScreen } from "./layout-screen";
 import { ToolSelectionScreen } from "./tool-selection-screen";
@@ -24,8 +24,8 @@ const actions = [
 ];
 
 export const OverviewScreen: React.FC = () => {
-  const [svg, setSvg] = useState<string | undefined>(undefined);
-  const [previewSVG, setPreviewSVG] = useState<string | undefined>(undefined);
+  const [svg, setSvg] = useState<Node | undefined>(undefined);
+  const [previewSVG, setPreviewSVG] = useState<Node | undefined>(undefined);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -36,34 +36,9 @@ export const OverviewScreen: React.FC = () => {
       return;
     }
     try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(svg, 'image/svg+xml');
-      const svgElem = doc.documentElement;
-      if (svgElem.tagName === 'svg') {
-        let needsUpdate = false;
-        // preserveAspectRatio
-        const currentPAR = svgElem.getAttribute('preserveAspectRatio');
-        if (currentPAR !== 'xMidYMid meet') {
-          svgElem.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-          needsUpdate = true;
-        }
-        // style with width, height, and border
-        const currentStyle = svgElem.getAttribute('style') || '';
-        const newStyle = 'width:auto;height:auto;max-width:100%;max-height:16rem;';
-        if (!currentStyle.includes('width:auto') || !currentStyle.includes('height:auto') || !currentStyle.includes('max-width:100%') || !currentStyle.includes('max-height:100%') || !currentStyle.includes('border:1px solid black')) {
-          svgElem.setAttribute('style', newStyle + currentStyle);
-          needsUpdate = true;
-        }
-        if (needsUpdate) {
-          const serializer = new XMLSerializer();
-          const updated = serializer.serializeToString(doc);
-          setPreviewSVG(updated);
-        } else {
-          setPreviewSVG(svg);
-        }
-      } else {
-        setPreviewSVG(svg);
-      }
+      // Apply display attributes using utility function
+      const processedNode = setSvgDisplayAttributes(svg);
+      setPreviewSVG(processedNode);
     } catch (e) {
       // Ignore parse errors
       setPreviewSVG(svg);
@@ -87,9 +62,8 @@ export const OverviewScreen: React.FC = () => {
     }
 
     try {
-      // Parse the SVG string to a Document
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(svg, 'image/svg+xml');
+      // Convert Node to Document using utility function
+      const doc = nodeToDocument(svg);
 
       // Process the document with our function
       const processedDoc = await updateSvgMetadataWithHash(doc);
@@ -123,11 +97,13 @@ export const OverviewScreen: React.FC = () => {
     if (selectedAction === "hatch") {
       return <ImageHatchScreen onClose={handleDialogClose} setSvg={setSvg} />;
     }
-    if (selectedAction === "layout") {
-      return <LayoutScreen onClose={handleDialogClose} setSvg={setSvg} svg={svg || ""} />;
-    }
-    if (selectedAction === "tools") {
-      return <ToolSelectionScreen onClose={handleDialogClose} setSvg={setSvg} svg={svg || ""} />;
+    if (svg) {
+      if (selectedAction === "layout") {
+        return <LayoutScreen onClose={handleDialogClose} setSvg={setSvg} setPreviewSVG={setPreviewSVG} svg={svg} />;
+      }
+      if (selectedAction === "tools") {
+        return <ToolSelectionScreen onClose={handleDialogClose} setSvg={setSvg} svg={svg} previewSVG={previewSVG} />;
+      }
     }
     return (
       <div className="py-4">
@@ -177,7 +153,10 @@ export const OverviewScreen: React.FC = () => {
               <div
                 className="w-auto h-auto max-w-full max-h-64 object-contain border border-border"
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                dangerouslySetInnerHTML={{ __html: previewSVG }}
+                dangerouslySetInnerHTML={{ __html: (() => {
+                  const serializer = new XMLSerializer();
+                  return serializer.serializeToString(previewSVG);
+                })() }}
               />
             </div>
           ) : (

@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { getLayerColors } from '../../lib/svg-color';
+import { nodeToDocument } from "@/lib/svg-utils";
 
 interface ToolSelectionScreenProps {
   onClose?: () => void;
-  setSvg?: (svg: string) => void;
-  svg: string;
+  setSvg?: (svg: Node) => void;
+  svg: Node;
+  previewSVG?: Node;
 }
 
 // Tool categories and their color options
@@ -60,7 +62,8 @@ interface ColorToolMapping {
 export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({ 
   onClose, 
   setSvg, 
-  svg 
+  svg,
+  previewSVG
 }) => {
   const [colors, setColors] = useState<string[]>([]);
   const [colorToolMapping, setColorToolMapping] = useState<ColorToolMapping>({});
@@ -72,7 +75,10 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
         try {
           // Upload SVG as a file using FormData
           const formData = new FormData();
-          const svgBlob = new Blob([svg], { type: 'image/svg+xml' });
+          const doc = nodeToDocument(svg);
+          const serializer = new XMLSerializer();
+          const svgString = serializer.serializeToString(doc);
+          const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
           formData.append('file', svgBlob, 'input.svg');
 
           const response = await fetch('http://localhost:8000/api/stroke-colors-to-layers', {
@@ -83,10 +89,10 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
 
           // Parse the returned SVG
           const parser = new DOMParser();
-          const doc = parser.parseFromString(responseSvg, 'image/svg+xml');
+          const responseDoc = parser.parseFromString(responseSvg, 'image/svg+xml');
 
           // Use getLayerColors to extract layer colors
-          const layerColors = getLayerColors(doc);
+          const layerColors = getLayerColors(responseDoc);
           const colorList = Object.values(layerColors) as string[];
           setColors(colorList);
 
@@ -136,7 +142,10 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
     // Here you could process the color-tool mappings
     console.log('Color tool mappings:', colorToolMapping);
     const formData = new FormData();
-    const svgBlob = new Blob([svg], { type: 'image/svg+xml' });
+    const doc = nodeToDocument(svg);
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(doc);
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
     formData.append('file', svgBlob, 'input.svg');
 
     // Generate pen_ids by combining tool key and color name
@@ -154,7 +163,9 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
       body: formData,
     });
     const newSvg = await response.text();
-    setSvg?.(newSvg);
+    const parser = new DOMParser();
+    const responseDoc = parser.parseFromString(newSvg, 'image/svg+xml');
+    setSvg?.(responseDoc);
     onClose?.();
   };
 
@@ -187,13 +198,14 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
           {/* Left Panel - SVG Preview */}
           <div className="flex-1 border rounded bg-white p-4">
             <div className="w-full h-full min-h-[400px] flex items-center justify-center">
-              {svg ? (
-                <img
-                src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`}
-                alt="SVG Preview"
-                className="object-contain border-2 border-dashed border-muted-foreground rounded"
-                style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }}
-                draggable={false}
+              {previewSVG ? (
+                <div
+                  dangerouslySetInnerHTML={{ __html: (() => {
+                    const serializer = new XMLSerializer();
+                    return serializer.serializeToString(previewSVG);
+                  })() }}
+                  className="object-contain border-2 border-dashed border-muted-foreground rounded"
+                  style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }}
                 />
               ) : (
                 <div className="text-muted-foreground text-center">

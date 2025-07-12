@@ -3,18 +3,21 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, Image, Settings } from "lucide-react";
+import { setSvgDisplayAttributes } from "@/lib/svg-utils";
 
 interface ImageHatchScreenProps {
   onClose?: () => void;
-  setSvg?: (svg: string) => void;
+  setSvg?: (svg: Node) => void;
+  setPreviewSVG?: (svg: Node | undefined) => void;
 }
 
-export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, setSvg }) => {
+export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, setSvg, setPreviewSVG }) => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [svgResult, setSvgResult] = useState<string | null>(null);
+  const [outputSVG, setOutputSVG] = useState<Node | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewSVG, setLocalPreviewSVG] = useState<Node | undefined>(undefined);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -22,7 +25,7 @@ export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, set
       const reader = new FileReader();
       reader.onload = (e) => {
         setUploadedImage(e.target?.result as string);
-        setSvgResult(null);
+        setOutputSVG(null);
         setError(null);
       };
       reader.readAsDataURL(file);
@@ -36,7 +39,7 @@ export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, set
   const handleProcessImage = async () => {
     if (!uploadedImage) return;
     setIsProcessing(true);
-    setSvgResult(null);
+    setOutputSVG(null);
     setError(null);
     try {
       // Convert base64 data URL to file object
@@ -54,7 +57,11 @@ export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, set
         throw new Error("Failed to process image");
       }
       const svgText = await apiResponse.text();
-      setSvgResult(svgText);
+      const parser = new DOMParser();
+      const responseDoc = parser.parseFromString(svgText, 'image/svg+xml');
+      setOutputSVG(responseDoc);
+      const previewNode = setSvgDisplayAttributes(responseDoc, '24rem');
+      setLocalPreviewSVG(previewNode);
     } catch (err) {
       console.error(err);
       setError("Failed to process image. Please try again.");
@@ -65,7 +72,7 @@ export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, set
 
   const handleReset = () => {
     setUploadedImage(null);
-    setSvgResult(null);
+    setOutputSVG(null);
     setError(null);
     setIsProcessing(false);
     if (fileInputRef.current) {
@@ -82,7 +89,7 @@ export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, set
           <h2 className="text-lg font-semibold">Image Hatching</h2>
         </div>
         <div className="flex items-center gap-2">
-          {!svgResult ? (
+          {!outputSVG ? (
             <Button
               onClick={handleProcessImage}
               disabled={!uploadedImage || isProcessing}
@@ -102,8 +109,11 @@ export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, set
           ) : (
             <Button
               onClick={() => {
-                if (setSvg && svgResult) {
-                  setSvg(svgResult);
+                if (setSvg && outputSVG) {
+                  setSvg(outputSVG);
+                }
+                if (setPreviewSVG && previewSVG) {
+                  setPreviewSVG(previewSVG);
                 }
                 onClose?.();
               }}
@@ -155,7 +165,7 @@ export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, set
                         src={uploadedImage}
                         alt="Uploaded image"
                         className="w-full object-contain rounded"
-                        style={{ maxHeight: '16rem' }}
+                        style={{ maxHeight: '24rem' }}
                       />
                     </div>
                   </div>
@@ -183,17 +193,21 @@ export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, set
               {error && !isProcessing && (
                 <span className="text-destructive text-center">{error}</span>
               )}
-              {svgResult && !isProcessing && !error && (
+              {previewSVG && !isProcessing && !error && (
                 <div className="w-full h-full flex items-center justify-center">
-                  <div className="w-full h-full max-h-[400px] max-w-full overflow-auto">
+                  <div className="w-full h-full max-w-full overflow-auto">
                     <div
-                      dangerouslySetInnerHTML={{ __html: svgResult }}
+                      dangerouslySetInnerHTML={{ __html: (() => {
+                        const serializer = new XMLSerializer();
+                        return serializer.serializeToString(previewSVG);
+                      })() }}
                       className="w-full h-full"
+                      style={{ maxHeight: '24rem' }}
                     />
                   </div>
                 </div>
               )}
-              {!svgResult && !isProcessing && !error && (
+              {!previewSVG && !isProcessing && !error && (
                 <>
                   {uploadedImage ? (
                     <p className="text-muted-foreground text-center">

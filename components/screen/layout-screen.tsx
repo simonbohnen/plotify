@@ -4,16 +4,19 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { getAssumedSize, SVG_SIZES } from "@/lib/svg-layout";
 import { Settings } from "lucide-react";
+import { nodeToDocument, setSvgDisplayAttributes } from "@/lib/svg-utils";
 
 interface LayoutScreenProps {
   onClose?: () => void;
-  setSvg?: (svg: string) => void;
-  svg: string;
+  setSvg?: (svg: Node) => void;
+  setPreviewSVG?: (svg: Node | undefined) => void;
+  svg: Node;
 }
 
-export const LayoutScreen: React.FC<LayoutScreenProps> = ({ onClose, setSvg, svg }) => {
-  const [svgText, setSvgText] = useState<string>(svg);
-  const [svgResult, setSvgResult] = useState<string | null>(null);
+export const LayoutScreen: React.FC<LayoutScreenProps> = ({ onClose, setSvg, setPreviewSVG, svg }) => {
+  const [inputSVG, setInputSVG] = useState<Node>(svg);
+  const [outputSVG, setOutputSVG] = useState<Node | null>(null);
+  const [previewSVG, setLocalPreviewSVG] = useState<Node | undefined>(undefined);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [width, setWidth] = useState<string>("210");
@@ -25,8 +28,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({ onClose, setSvg, svg
     // Infer initial width/height from SVG
     try {
       if (typeof window !== "undefined" && svg) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(svg, "image/svg+xml");
+        const doc = nodeToDocument(svg);
         const assumed = getAssumedSize(doc);
         if (assumed) {
           const { size, orientation } = assumed;
@@ -46,17 +48,21 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({ onClose, setSvg, svg
   }, [svg]);
 
   const handleProcess = async () => {
-    if (!svgText) {
+    if (!inputSVG) {
       setError("No SVG data available.");
       return;
     }
     setIsProcessing(true);
-    setSvgResult(null);
+    setOutputSVG(null);
     setError(null);
     try {
       const formData = new FormData();
+      // Convert Node to Document and then to string
+      const doc = nodeToDocument(inputSVG);
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(doc);
       // Create a Blob from the SVG string and append as a file
-      const svgBlob = new Blob([svgText], { type: "image/svg+xml" });
+      const svgBlob = new Blob([svgString], { type: "image/svg+xml" });
       formData.append("file", svgBlob, "input.svg");
       const params = new URLSearchParams({
         width,
@@ -72,7 +78,14 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({ onClose, setSvg, svg
         throw new Error("Failed to process layout");
       }
       const svgTextResult = await response.text();
-      setSvgResult(svgTextResult);
+      // Convert the string response back to a Node
+      const parser = new DOMParser();
+      const responseDoc = parser.parseFromString(svgTextResult, 'image/svg+xml');
+      setOutputSVG(responseDoc);
+      
+      // Generate preview SVG with display attributes
+      const previewNode = setSvgDisplayAttributes(responseDoc, '24rem');
+      setLocalPreviewSVG(previewNode);
     } catch (err) {
       setError("Failed to process layout. Please try again.");
     } finally {
@@ -89,10 +102,10 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({ onClose, setSvg, svg
           <h2 className="text-lg font-semibold">Layout SVG</h2>
         </div>
         <div className="flex items-center gap-2">
-          {!svgResult ? (
+          {!outputSVG ? (
             <Button
               onClick={handleProcess}
-              disabled={isProcessing || !svgText}
+              disabled={isProcessing || !inputSVG}
               className=""
               variant="default"
               size="sm"
@@ -109,8 +122,11 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({ onClose, setSvg, svg
           ) : (
             <Button
               onClick={() => {
-                if (setSvg && svgResult) {
-                  setSvg(svgResult);
+                if (setSvg && outputSVG) {
+                  setSvg(outputSVG);
+                }
+                if (setPreviewSVG && previewSVG) {
+                  setPreviewSVG(previewSVG);
                 }
                 onClose?.();
               }}
@@ -136,10 +152,13 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({ onClose, setSvg, svg
           <div className="flex-1 border rounded bg-white p-4">
             <h3 className="text-sm font-medium mb-2">Preview</h3>
             <div className="w-full h-full min-h-[400px] flex items-center justify-center">
-              {svgResult ? (
+              {previewSVG ? (
                 <div className="border border-dashed border-muted-foreground rounded" style={{borderWidth: 1, display: 'inline-block'}}>
                   <div
-                    dangerouslySetInnerHTML={{ __html: svgResult }}
+                    dangerouslySetInnerHTML={{ __html: (() => {
+                      const serializer = new XMLSerializer();
+                      return serializer.serializeToString(previewSVG);
+                    })() }}
                     className="w-full h-full"
                   />
                 </div>

@@ -57,6 +57,69 @@ export function setMetadataSourceHash(metadata: Element, hash: string): void {
   }
 }
 
+export function nodeToDocument(node: Node): Document {
+  if (node.nodeType === Node.DOCUMENT_NODE) {
+    return node as Document;
+  } else {
+    // Create a new document and import the node
+    const doc = document.implementation.createDocument(null, null, null);
+    const importedNode = doc.importNode(node, true);
+    doc.appendChild(importedNode);
+    return doc;
+  }
+}
+
+export function setSvgDisplayAttributes(node: Node, maxHeight: string = '16rem'): Node {
+  // Find the SVG element within the node
+  let svgElem: Element | null = null;
+  if (node.nodeType === Node.DOCUMENT_NODE) {
+    svgElem = (node as Document).documentElement;
+  } else if (node.nodeType === Node.ELEMENT_NODE) {
+    svgElem = node as Element;
+  }
+  
+  if (!svgElem || svgElem.tagName !== 'svg') {
+    return node;
+  }
+  
+  // Check if any changes are needed
+  const currentPAR = svgElem.getAttribute('preserveAspectRatio');
+  const currentStyle = svgElem.getAttribute('style') || '';
+  const newStyle = `width:auto;height:auto;max-width:100%;max-height:${maxHeight};`;
+  
+  const needsPARUpdate = currentPAR !== 'xMidYMid meet';
+  const needsStyleUpdate = !currentStyle.includes('width:auto') || 
+                          !currentStyle.includes('height:auto') || 
+                          !currentStyle.includes('max-width:100%') || 
+                          !currentStyle.includes('max-height:100%') || 
+                          !currentStyle.includes('border:1px solid black');
+  
+  if (!needsPARUpdate && !needsStyleUpdate) {
+    return node;
+  }
+  
+  // Clone the node only if changes are needed
+  const clonedNode = node.cloneNode(true);
+  let clonedSvgElem: Element | null = null;
+  
+  if (clonedNode.nodeType === Node.DOCUMENT_NODE) {
+    clonedSvgElem = (clonedNode as Document).documentElement;
+  } else if (clonedNode.nodeType === Node.ELEMENT_NODE) {
+    clonedSvgElem = clonedNode as Element;
+  }
+  
+  if (clonedSvgElem && clonedSvgElem.tagName === 'svg') {
+    if (needsPARUpdate) {
+      clonedSvgElem.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    }
+    if (needsStyleUpdate) {
+      clonedSvgElem.setAttribute('style', newStyle + currentStyle);
+    }
+  }
+  
+  return clonedNode;
+}
+
 export async function updateSvgMetadataWithHash(doc: Document): Promise<Document> {
   // Remove metadata and get the removed element
   const { doc: modifiedDoc, metadata } = removeSvgMetadata(doc);
