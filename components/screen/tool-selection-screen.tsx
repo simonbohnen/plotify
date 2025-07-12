@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { getLayerColors } from '../../lib/svg-color';
 import { nodeToDocument } from "@/lib/svg-utils";
+import { API_URL } from "@/lib/api-utils";
 
 interface ToolSelectionScreenProps {
   onClose?: () => void;
@@ -81,7 +82,7 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
           const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
           formData.append('file', svgBlob, 'input.svg');
 
-          const response = await fetch('http://localhost:8000/api/stroke-colors-to-layers', {
+          const response = await fetch(`${API_URL}/api/stroke-colors-to-layers`, {
             method: 'POST',
             body: formData,
           });
@@ -158,7 +159,7 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
     const params = new URLSearchParams();
     penIds.forEach(id => params.append('pen_ids', id));
 
-    const response = await fetch(`http://localhost:8000/api/assign-pens?${params.toString()}`, {
+    const response = await fetch(`${API_URL}/api/assign-pens?${params.toString()}`, {
       method: 'POST',
       body: formData,
     });

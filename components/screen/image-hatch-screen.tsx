@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, Image, Settings } from "lucide-react";
 import { setSvgDisplayAttributes } from "@/lib/svg-utils";
+import { API_URL } from "@/lib/api-utils";
 
 interface ImageHatchScreenProps {
   onClose?: () => void;
@@ -49,7 +50,7 @@ export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, set
       
       const formData = new FormData();
       formData.append("file", file);
-      const apiResponse = await fetch("http://localhost:8000/api/hatch-mock", {
+      const apiResponse = await fetch(`${API_URL}/api/hatch-mock`, {
         method: "POST",
         body: formData,
       });

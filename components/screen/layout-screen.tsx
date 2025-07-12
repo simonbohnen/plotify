@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { getAssumedSize, SVG_SIZES } from "@/lib/svg-layout";
 import { Settings } from "lucide-react";
 import { nodeToDocument, setSvgDisplayAttributes } from "@/lib/svg-utils";
+import { API_URL } from "@/lib/api-utils";
 
 interface LayoutScreenProps {
   onClose?: () => void;
@@ -70,7 +71,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({ onClose, setSvg, set
         margin,
         landscape: landscape ? "true" : "false",
       });
-      const response = await fetch(`http://localhost:8000/api/layout?${params.toString()}`, {
+      const response = await fetch(`${API_URL}/api/layout?${params.toString()}`, {
         method: "POST",
         body: formData,
       });
