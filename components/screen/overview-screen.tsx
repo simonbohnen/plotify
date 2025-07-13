@@ -15,10 +15,12 @@ import { LayoutScreen } from "./layout-screen";
 import { ToolSelectionScreen } from "./tool-selection-screen";
 import { getColors } from "@/lib/svg-color";
 import { SvgHatchScreen } from "./svg-hatch-screen";
+import { VectorizationScreen } from "./vectorization-screen";
 
 // Example actions (replace or extend as needed)
 const actions = [
   { key: "hatch", title: "Hatch Image" },
+  { key: "vectorize", title: "Vectorize Image" },
 ];
 
 export const OverviewScreen: React.FC = () => {
@@ -94,6 +96,9 @@ export const OverviewScreen: React.FC = () => {
   const renderDialogContent = () => {
     if (selectedAction === "hatch") {
       return <ImageHatchScreen onClose={handleDialogClose} setSvg={setSvg} />;
+    }
+    if (selectedAction === "vectorize") {
+      return <VectorizationScreen onClose={handleDialogClose} setSvg={setSvg} />;
     }
     if (svg) {
       if (selectedAction === "layout") {

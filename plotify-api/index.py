@@ -9,7 +9,7 @@ import toml
 import vpype_cli
 from vpype import read_svg_by_attributes
 import sys
-import argparse
+import requests
 
 from hatched import hatched
 from hatch_fill import Hatch_Fill
@@ -154,6 +154,87 @@ async def assign_pens(
 
     # Return the SVG as XML
     return document_to_svg_response(new_doc)
+
+@app.post("/api/vectorize")
+async def vectorize(
+    file: UploadFile = File(...),
+    mode: str = Query(..., description="Vectorization mode"),
+    max_colors: int = Query(..., description="Maximum number of colors")
+):
+    """
+    Vectorize an image using the vectorizer.ai API.
+    This endpoint relays the request to vectorizer.ai and returns the vectorized SVG.
+    """
+    # If mode is mock, return the wimbledon.svg file
+    if mode == "mock":
+        try:
+            with open("wimbledon.svg", "r") as f:
+                svg_content = f.read()
+            return Response(content=svg_content, media_type="image/svg+xml")
+        except FileNotFoundError:
+            return Response(
+                content="wimbledon.svg not found",
+                status_code=404,
+                media_type="text/plain"
+            )
+    
+    # If mode is mock-preview, return the default image
+    if mode == "mock-preview":
+        try:
+            with open("/Users/simon/code/plotify/plotify-api/IMG_3296.png", "rb") as f:
+                image_content = f.read()
+            return Response(content=image_content, media_type="image/png")
+        except FileNotFoundError:
+            return Response(
+                content="Default preview image not found",
+                status_code=404,
+                media_type="text/plain"
+            )
+    
+    # Save uploaded file to a temporary location
+    tmp_path = await upload_file_to_temp(file)
+    
+    try:
+        # Prepare the data for the vectorizer.ai API
+        data = {
+            "mode": mode,
+            "processing.max_colors": max_colors
+        }
+        
+        # Make request to vectorizer.ai API
+        response = requests.post(
+            'https://vectorizer.ai/api/v1/vectorize',
+            files={'image': open(tmp_path, 'rb')},
+            data=data,
+            auth=(os.getenv("VECTORIZER_AI_API_ID"), os.getenv("VECTORIZER_AI_API_SECRET")),
+        )
+        
+        # Check if the request was successful
+        response.raise_for_status()
+        
+        media_type = "image/png" if mode == "preview" else "image/svg+xml"
+        
+        # Return the vectorized SVG
+        return Response(content=response.content, media_type=media_type)
+        
+    except requests.exceptions.RequestException as e:
+        # Return a proper error response for API errors
+        return Response(
+            content=f"Error calling vectorizer.ai API: {str(e)}",
+            status_code=500,
+            media_type="text/plain"
+        )
+    except Exception as e:
+        # Return a proper error response for other errors
+        return Response(
+            content=f"Error processing image: {str(e)}",
+            status_code=500,
+            media_type="text/plain"
+        )
+    finally:
+        # Clean up temporary file
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
 
 # Mapping of pen identifiers to color and pen width
 PEN_INFO = {

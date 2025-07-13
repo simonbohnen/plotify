@@ -94,7 +94,24 @@ export function setSvgDisplayAttributes(node: Node, maxHeight: string = '16rem')
                           !currentStyle.includes('max-height:100%') || 
                           !currentStyle.includes('border:1px solid black');
   
-  if (!needsPARUpdate && !needsStyleUpdate) {
+  // Parse viewBox to get width and height
+  const viewBox = svgElem.getAttribute('viewBox');
+  let width: number | null = null;
+  let height: number | null = null;
+  
+  if (viewBox) {
+    const parts = viewBox.split(/\s+/).map(Number);
+    if (parts.length === 4 && !parts.some(isNaN)) {
+      // viewBox format: "x y width height"
+      width = parts[2];
+      height = parts[3];
+    }
+  }
+  
+  const needsWidthUpdate = width !== null && svgElem.getAttribute('width') !== width.toString();
+  const needsHeightUpdate = height !== null && svgElem.getAttribute('height') !== height.toString();
+  
+  if (!needsPARUpdate && !needsStyleUpdate && !needsWidthUpdate && !needsHeightUpdate) {
     return node;
   }
   
@@ -114,6 +131,12 @@ export function setSvgDisplayAttributes(node: Node, maxHeight: string = '16rem')
     }
     if (needsStyleUpdate) {
       clonedSvgElem.setAttribute('style', newStyle + currentStyle);
+    }
+    if (needsWidthUpdate && width !== null) {
+      clonedSvgElem.setAttribute('width', width.toString());
+    }
+    if (needsHeightUpdate && height !== null) {
+      clonedSvgElem.setAttribute('height', height.toString());
     }
   }
   
