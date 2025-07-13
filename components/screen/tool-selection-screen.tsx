@@ -14,10 +14,11 @@ interface ToolSelectionScreenProps {
 }
 
 // Tool categories and their color options
-const TOOL_CATEGORIES = [
+export const TOOL_CATEGORIES = [
   {
     key: "felt_tip",
     label: "Felt Tip",
+    pen_width: 0.7,
     colors: [
       { name: "Black", value: "#222222" },
       { name: "Brown", value: "#8B5C2A" },
@@ -28,6 +29,7 @@ const TOOL_CATEGORIES = [
   {
     key: "technical_pen",
     label: "Technical Pen",
+    pen_width: 0.15,
     colors: [
       { name: "Black", value: "#111111" },
       { name: "Gray", value: "#888888" },
@@ -37,6 +39,7 @@ const TOOL_CATEGORIES = [
   {
     key: "gel_pen",
     label: "Gel Pen",
+    pen_width: 0.5,
     colors: [
       { name: "Black", value: "#222222" },
       { name: "Blue", value: "#1E90FF" },

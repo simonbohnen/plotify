@@ -768,7 +768,7 @@ class Hatch_Fill(inkex.Effect):
                 inkex.errormsg('Warning: unable to hatch object <{0}>, please convert it to a path first.'.format(node.get_id()))
                 pass
 
-    def joinFillsWithNode(self, node, stroke_width, path):
+    def joinFillsWithNode(self, node, stroke_width, path, transform_hatch_spacing):
 
         """
         Generate a SVG <path> element containing the path data "path".
@@ -791,7 +791,7 @@ class Hatch_Fill(inkex.Effect):
         # Now make a <path> element which contains the hatches & is a child
         # of the new <g> element
         stroke_color = '#000000'  # default assumption
-        stroke_width = '1.0'  # default value
+        stroke_width = str(transform_hatch_spacing)  # default value
         has_set_stroke_color = False
 
         try:
@@ -803,9 +803,7 @@ class Hatch_Fill(inkex.Effect):
                     if len(parts) == 2:
                         (prop, val) = parts
                         prop = prop.strip().lower()
-                        if prop == 'stroke-width':
-                            stroke_width = val.strip()
-                        elif prop == 'stroke' and not has_set_stroke_color:
+                        if prop == 'stroke' and not has_set_stroke_color:
                             val = val.strip()
                             stroke_color = val
                         elif prop == 'fill':
@@ -1009,7 +1007,7 @@ class Hatch_Fill(inkex.Effect):
                         path += ('M {0:f},{1:f} l {2:f},{3:f} '.format(pt2[0], pt2[1], pt1[0] - pt2[0], pt1[1] - pt2[1]))
 
                     direction = not direction
-                self.joinFillsWithNode(key, stroke_width, path[:-1])
+                self.joinFillsWithNode(key, stroke_width, path[:-1], transformed_hatch_spacing)
 
             else:
                 for segment in self.hatches[key]:
@@ -1189,7 +1187,7 @@ class Hatch_Fill(inkex.Effect):
                                                                             path,
                                                                             relative_held_line_pos)
 
-                self.joinFillsWithNode(key, stroke_width, path[:-1])
+                self.joinFillsWithNode(key, stroke_width, path[:-1], transformed_hatch_spacing)
 
     def recursivelyAppendNearbySegments(self,
                                             transformed_hatch_spacing,

@@ -14,6 +14,7 @@ import { getAssumedSize } from "@/lib/svg-layout";
 import { LayoutScreen } from "./layout-screen";
 import { ToolSelectionScreen } from "./tool-selection-screen";
 import { getColors } from "@/lib/svg-color";
+import { SvgHatchScreen } from "./svg-hatch-screen";
 
 // Example actions (replace or extend as needed)
 const actions = [
@@ -101,6 +102,9 @@ export const OverviewScreen: React.FC = () => {
       if (selectedAction === "tools") {
         return <ToolSelectionScreen onClose={handleDialogClose} setSvg={setSvg} svg={svg} previewSVG={previewSVG} />;
       }
+      if (selectedAction === "hatch_svg") {
+        return <SvgHatchScreen onClose={handleDialogClose} setSvg={setSvg} svg={svg} previewSVG={previewSVG} />;
+      }
     }
     return (
       <div className="py-4">
@@ -167,7 +171,7 @@ export const OverviewScreen: React.FC = () => {
         <div className="flex-1 p-6">
           <h3 className="text-sm font-medium mb-4">Actions</h3>
           <div className="space-y-3">
-            <Button variant="secondary" className="w-full justify-start">
+            <Button variant="secondary" className="w-full justify-start" onClick={() => handleActionClick("hatch_svg")}>
               Hatch
             </Button>
             <Button variant="secondary" className="w-full justify-start" onClick={() => handleActionClick("layout")}>
