@@ -792,6 +792,7 @@ class Hatch_Fill(inkex.Effect):
         # of the new <g> element
         stroke_color = '#000000'  # default assumption
         stroke_width = '1.0'  # default value
+        has_set_stroke_color = False
 
         try:
             style = node.get('style')
@@ -804,9 +805,13 @@ class Hatch_Fill(inkex.Effect):
                         prop = prop.strip().lower()
                         if prop == 'stroke-width':
                             stroke_width = val.strip()
-                        elif prop == 'stroke':
+                        elif prop == 'stroke' and not has_set_stroke_color:
                             val = val.strip()
                             stroke_color = val
+                        elif prop == 'fill':
+                            val = val.strip()
+                            stroke_color = val
+                            has_set_stroke_color = True
         finally:
             style = {'stroke': '{0}'.format(stroke_color), 'fill': 'none', 'stroke-width': '{0}'.format(stroke_width)}
             line_attribs = {'style': str(inkex.Style(style)), 'd': path}
