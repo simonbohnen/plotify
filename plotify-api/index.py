@@ -8,8 +8,11 @@ import tempfile
 import toml
 import vpype_cli
 from vpype import read_svg_by_attributes
+import sys
+import argparse
 
 from hatched import hatched
+from hatch_fill import Hatch_Fill
 
 load_dotenv(".env.local")
 
@@ -166,3 +169,75 @@ PEN_INFO = {
     "gel_pen_Green": {"color": "#27AE60", "pen_width": "0.5mm"},
     "gel_pen_Pink": {"color": "#FF69B4", "pen_width": "0.5mm"},
 }
+
+@app.post("/api/hatch-svg")
+async def hatch_svg(
+    file: UploadFile = File(...),
+    hatch_spacing: float = Query(10.0, description="Spacing between hatch lines"),
+    hatch_angle: float = Query(90.0, description="Angle of inclination for hatch lines"),
+    hold_back_steps: float = Query(3.0, description="How far hatch strokes stay from boundary"),
+    cross_hatch: bool = Query(False, description="Generate a cross hatch pattern"),
+    reduce_pen_lifts: bool = Query(True, description="Reduce plotting time by joining some hatches"),
+    hold_back_hatch_from_edges: bool = Query(True, description="Stay away from edges"),
+    hatch_scope: float = Query(3.0, description="Radius searched for segments to join"),
+    tolerance: float = Query(20.0, description="Allowed deviation from original paths"),
+    unit: str = Query("mm", description="Unit for measurements")
+):
+    """
+    Hatch an SVG file using the Hatch_Fill class directly.
+    This endpoint processes SVG files and adds hatching patterns to them.
+    """
+    # Save uploaded file to a temporary location
+    input_svg_path = await upload_file_to_temp(file, ".svg")
+    
+    try:
+        # Create a temporary output file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".svg") as tmp_output:
+            output_svg_path = tmp_output.name
+        
+        # Set up sys.argv to simulate command line arguments for Hatch_Fill
+        original_argv = sys.argv.copy()
+        sys.argv = [
+            "hatch_fill.py",
+            "--output", output_svg_path,
+            "--hatchSpacing", str(hatch_spacing),
+            "--hatchAngle", str(hatch_angle),
+            "--holdBackSteps", str(hold_back_steps),
+            "--crossHatch", str(cross_hatch).lower(),
+            "--reducePenLifts", str(reduce_pen_lifts).lower(),
+            "--holdBackHatchFromEdges", str(hold_back_hatch_from_edges).lower(),
+            "--hatchScope", str(hatch_scope),
+            "--tolerance", str(tolerance),
+            "--unit", unit,
+            input_svg_path
+        ]
+        
+        try:
+            # Run the Hatch_Fill class directly
+            hatch_fill = Hatch_Fill()
+            hatch_fill.run()
+            
+            # Read the output SVG file
+            with open(output_svg_path, "r") as f:
+                svg_content = f.read()
+            
+            # Return the hatched SVG as XML
+            return Response(content=svg_content, media_type="image/svg+xml")
+            
+        finally:
+            # Restore original sys.argv
+            sys.argv = original_argv
+        
+    except Exception as e:
+        # Return a proper error response
+        return Response(
+            content=f"Error processing SVG: {str(e)}",
+            status_code=500,
+            media_type="text/plain"
+        )
+    finally:
+        # Clean up temporary files
+        if os.path.exists(input_svg_path):
+            os.remove(input_svg_path)
+        if os.path.exists(output_svg_path):
+            os.remove(output_svg_path)
