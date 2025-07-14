@@ -3,7 +3,6 @@ include .env
 .EXPORT_ALL_VARIABLES:
 APP_NAME=plotify-api
 
-AWS_REGION=eu-central-1
 TAG=latest
 TF_VAR_app_name=${APP_NAME}
 REGISTRY_NAME=${APP_NAME}
@@ -23,3 +22,4 @@ deploy-service:
 
 destroy-service:
 	cd infra/app && terraform init && terraform destroy -auto-approve
+ 
