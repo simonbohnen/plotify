@@ -167,7 +167,7 @@ export const DepthIsolinesScreen: React.FC<DepthIsolinesScreenProps> = ({
                   <div className="w-32 h-32 border-2 border-dashed border-muted-foreground rounded flex items-center justify-center mb-2">
                     <span className="text-xs">No Preview</span>
                   </div>
-                  <p className="text-sm">Click "Generate line drawing" to see the result</p>
+                  <p className="text-sm">Click &quot;Generate line drawing&quot; to see the result</p>
                 </div>
               )}
             </div>

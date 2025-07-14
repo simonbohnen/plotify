@@ -178,7 +178,7 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
                       <div className="w-32 h-32 border-2 border-dashed border-muted-foreground rounded flex items-center justify-center mb-2">
                         <span className="text-xs">No Preview</span>
                       </div>
-                      <p className="text-sm">Click "Load Preview SVG" to see the vectorized result</p>
+                      <p className="text-sm">Click &quot;Load Preview SVG&quot; to see the vectorized result</p>
                     </div>
                   )}
                 </div>
@@ -251,8 +251,8 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
               <ol className="text-xs text-muted-foreground space-y-2">
                 <li>1. Upload an image file (PNG, JPG, etc.)</li>
                 <li>2. Configure the maximum number of colors</li>
-                <li>3. Click "Load Preview SVG" to see the vectorized result</li>
-                <li>4. If satisfied, click "Generate SVG" to create the final vector</li>
+                <li>3. Click &quot;Load Preview SVG&quot; to see the vectorized result</li>
+                <li>4. If satisfied, click &quot;Generate SVG&quot; to create the final vector</li>
               </ol>
             </div>
           </div>
