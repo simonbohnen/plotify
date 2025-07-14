@@ -19,49 +19,16 @@ export const TOOL_CATEGORIES = [
     key: "felt_tip",
     label: "Felt Tip",
     pen_width: 0.7,
-    colors: [
-      { name: "Light Violet", value: "#ce6aee" },
-      { name: "Orange", value: "#f67f35" },
-      { name: "Blue", value: "#357ef3" },
-      { name: "Dark Pink", value: "#d373ed" },
-      { name: "Grey", value: "#aeb9c1" },
-      { name: "Bluish Red", value: "#e34b7f" },
-      { name: "Red", value: "#eb5d7a" },
-      { name: "Light Green", value: "#84d174" },
-      { name: "Cream", value: "#e5cab0" },
-      { name: "Brown", value: "#c47967" },
-      { name: "Dark Green", value: "#2cc2ac" },
-      { name: "Violet", value: "#7d4be2" },
-      { name: "Yellow", value: "#ddcf48" },
-      { name: "Pink", value: "#ee7dd9" },
-      { name: "Lavender", value: "#9b95ef" },
-      { name: "Light Blue", value: "#00aded" },
-      { name: "Black", value: "#4b4a59" },
-      { name: "Dark Terracotta", value: "#cc6867" },
-      { name: "Turquoise", value: "#00b9c2" },
-      { name: "Dark Blue", value: "#3b56dd" },
-    ],
   },
   {
     key: "technical_pen",
     label: "Technical Pen",
     pen_width: 0.15,
-    colors: [
-      { name: "Black", value: "#111111" },
-      { name: "Gray", value: "#888888" },
-      { name: "Sepia", value: "#704214" },
-    ],
   },
   {
     key: "gel_pen",
     label: "Gel Pen",
     pen_width: 0.5,
-    colors: [
-      { name: "Black", value: "#222222" },
-      { name: "Blue", value: "#1E90FF" },
-      { name: "Green", value: "#27AE60" },
-      { name: "Pink", value: "#FF69B4" },
-    ],
   },
 ];
 
@@ -122,8 +89,7 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
             if (!(color in colorToolMapping)) {
               // Default: first tool and first color in that tool
               const defaultTool = TOOL_CATEGORIES[0].key;
-              const defaultColor = TOOL_CATEGORIES[0].colors[0].value;
-              newMapping[color] = { tool: defaultTool, color: defaultColor };
+              newMapping[color] = { tool: defaultTool, color: "" };
             } else {
               newMapping[color] = colorToolMapping[color];
             }
@@ -138,12 +104,11 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
 
   const handleToolChange = (svgColor: string, tool: ToolCategoryKey) => {
     const toolObj = TOOL_CATEGORIES.find(t => t.key === tool);
-    const firstColor = toolObj ? toolObj.colors[0].value : '';
     setColorToolMapping(prev => ({
       ...prev,
       [svgColor]: {
         tool,
-        color: firstColor,
+        color: "",
       },
     }));
   };
@@ -172,8 +137,7 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
     const penIds = colors.map(svgColor => {
       const mapping = colorToolMapping[svgColor];
       const toolObj = TOOL_CATEGORIES.find(t => t.key === mapping.tool) || TOOL_CATEGORIES[0];
-      const colorObj = toolObj.colors.find(c => c.value === mapping.color) || toolObj.colors[0];
-      return `${mapping.tool}_${colorObj.name}`;
+      return `${mapping.tool}_${mapping.color}`;
     });
     const params = new URLSearchParams();
     penIds.forEach(id => params.append('pen_ids', id));
@@ -249,9 +213,7 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
             ) : (
               <div className="space-y-4">
                 {colors.map((svgColor) => {
-                  const mapping = colorToolMapping[svgColor] || { tool: TOOL_CATEGORIES[0].key, color: TOOL_CATEGORIES[0].colors[0].value };
-                  const toolObj = TOOL_CATEGORIES.find(t => t.key === mapping.tool) || TOOL_CATEGORIES[0];
-                  const colorObj = toolObj.colors.find(c => c.value === mapping.color) || toolObj.colors[0];
+                  const mapping = colorToolMapping[svgColor] || { tool: TOOL_CATEGORIES[0].key, color: "" };
                   return (
                     <div key={svgColor} className="flex items-center gap-3 p-3 border rounded bg-card">
                       {/* SVG Color Swatch */}
@@ -274,21 +236,13 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
                           <option key={tool.key} value={tool.key}>{tool.label}</option>
                         ))}
                       </select>
-                      {/* Tool Color Dropdown */}
-                      <select
+                      {/* Tool Color Name Input */}
+                      <input
+                        type="text"
                         value={mapping.color}
                         onChange={e => handleColorChange(svgColor, e.target.value)}
                         className="text-sm border rounded px-2 py-1 bg-background ml-2"
-                      >
-                        {toolObj.colors.map(color => (
-                          <option key={color.value} value={color.value}>{color.name}</option>
-                        ))}
-                      </select>
-                      {/* Tool Color Swatch */}
-                      <div 
-                        className="w-6 h-6 rounded-full border border-border ml-2"
-                        style={{ backgroundColor: colorObj.value }}
-                        title={colorObj.name}
+                        placeholder="Enter color name"
                       />
                     </div>
                   );

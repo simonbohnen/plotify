@@ -45,7 +45,7 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
       const formData = new FormData();
       formData.append('file', fileInputRef.current.files[0]);
 
-      const response = await fetch(`${API_URL}/api/vectorize?mode=mock-preview&max_colors=${maxColors}&remove_whites=${removeWhites}`, {
+      const response = await fetch(`${API_URL}/api/vectorize?mode=preview&max_colors=${maxColors}&remove_whites=${removeWhites}`, {
         method: 'POST',
         body: formData,
       });
@@ -74,7 +74,7 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
       const formData = new FormData();
       formData.append('file', fileInputRef.current.files[0]);
 
-      const response = await fetch(`${API_URL}/api/vectorize?mode=mock&max_colors=${maxColors}&remove_whites=${removeWhites}`, {
+      const response = await fetch(`${API_URL}/api/vectorize?mode=production&max_colors=${maxColors}&remove_whites=${removeWhites}`, {
         method: 'POST',
         body: formData,
       });
@@ -115,7 +115,7 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
           </Button>
           {onClose && (
             <Button variant="outline" size="sm" onClick={onClose}>
-              Cancel
+              {previewImageURL ? "Done" : "Cancel"}
             </Button>
           )}
         </div>
@@ -149,6 +149,7 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
                       src={uploadedImage}
                       alt="Uploaded image"
                       className="max-w-full max-h-full object-contain"
+                      style={{ maxHeight: '24rem' }}
                     />
                   ) : (
                     <div className="text-muted-foreground text-center">
@@ -170,6 +171,7 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
                       src={previewImageURL}
                       alt="Vectorized preview"
                       className="max-w-full max-h-full object-contain"
+                      style={{ maxHeight: '24rem' }}
                     />
                   ) : (
                     <div className="text-muted-foreground text-center">

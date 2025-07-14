@@ -50,7 +50,7 @@ export const ImageHatchScreen: React.FC<ImageHatchScreenProps> = ({ onClose, set
       
       const formData = new FormData();
       formData.append("file", file);
-      const apiResponse = await fetch(`${API_URL}/api/hatch-mock`, {
+      const apiResponse = await fetch(`${API_URL}/api/hatch`, {
         method: "POST",
         body: formData,
       });

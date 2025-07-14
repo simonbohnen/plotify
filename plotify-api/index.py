@@ -119,6 +119,43 @@ async def stroke_to_layers(file: UploadFile = File(...)):
     # Return SVG as XML
     return document_to_svg_response(document)
 
+# Pen types and widths
+PEN_TYPES = {
+    "felt_tip": "0.7mm",
+    "technical_pen": "0.15mm",
+    "gel_pen": "0.5mm",
+}
+
+# Pen colors and hex values
+PEN_COLORS = {
+    "Light Violet": "#ce6aee",
+    "Orange": "#f67f35",
+    "Blue": "#357ef3",
+    "Dark Pink": "#d373ed",
+    "Grey": "#aeb9c1",
+    "Bluish Red": "#e34b7f",
+    "Red": "#eb5d7a",
+    "Light Green": "#84d174",
+    "Cream": "#e5cab0",
+    "Brown": "#c47967",
+    "Dark Green": "#2cc2ac",
+    "Violet": "#7d4be2",
+    "Yellow": "#ddcf48",
+    "Pink": "#ee7dd9",
+    "Lavender": "#9b95ef",
+    "Light Blue": "#00aded",
+    "Black": "#4b4a59",
+    "Dark Terracotta": "#cc6867",
+    "Turquoise": "#00b9c2",
+    "Dark Blue": "#3b56dd",
+    "Gray": "#888888",
+    "Sepia": "#704214",
+    "Green": "#27AE60",
+    "Pink": "#FF69B4",
+    "Blue": "#1E90FF",
+    "Black (gel pen)": "#222222",
+}
+
 @app.post("/api/assign-pens")
 async def assign_pens(
     file: UploadFile = File(...),
@@ -130,13 +167,21 @@ async def assign_pens(
     # Create a temporary vpype config file
     layers = []
     for idx, pen_id in enumerate(pen_ids):
-        pen_info = PEN_INFO.get(pen_id, {"color": "#000000", "pen_width": "0.3mm"})
+        pen_parts = pen_id.split("_")
+        if len(pen_parts) < 2:
+            tool = pen_parts[0]
+            color_name = None
+        else:
+            tool = "_".join(pen_parts[:-1])
+            color_name = pen_parts[-1]
+        pen_width = PEN_TYPES.get(tool, "0.3mm")
         layer = {
             "layer_id": idx + 1,  # 1-based layer index
             "name": f"{idx + 1}_{pen_id}",
-            "color": pen_info["color"],
-            "pen_width": pen_info["pen_width"],
+            "pen_width": pen_width,
         }
+        if color_name and color_name in PEN_COLORS:
+            layer["color"] = PEN_COLORS[color_name]
         layers.append(layer)
     config_dict = {
         "pen_config": {
@@ -245,37 +290,6 @@ async def vectorize(
         # Clean up temporary file
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
-
-# Mapping of pen identifiers to color and pen width
-PEN_INFO = {
-    "felt_tip_Light Violet": {"color": "#ce6aee", "pen_width": "0.7mm"},
-    "felt_tip_Orange": {"color": "#f67f35", "pen_width": "0.7mm"},
-    "felt_tip_Blue": {"color": "#357ef3", "pen_width": "0.7mm"},
-    "felt_tip_Dark Pink": {"color": "#d373ed", "pen_width": "0.7mm"},
-    "felt_tip_Grey": {"color": "#aeb9c1", "pen_width": "0.7mm"},
-    "felt_tip_Bluish Red": {"color": "#e34b7f", "pen_width": "0.7mm"},
-    "felt_tip_Red": {"color": "#eb5d7a", "pen_width": "0.7mm"},
-    "felt_tip_Light Green": {"color": "#84d174", "pen_width": "0.7mm"},
-    "felt_tip_Cream": {"color": "#e5cab0", "pen_width": "0.7mm"},
-    "felt_tip_Brown": {"color": "#c47967", "pen_width": "0.7mm"},
-    "felt_tip_Dark Green": {"color": "#2cc2ac", "pen_width": "0.7mm"},
-    "felt_tip_Violet": {"color": "#7d4be2", "pen_width": "0.7mm"},
-    "felt_tip_Yellow": {"color": "#ddcf48", "pen_width": "0.7mm"},
-    "felt_tip_Pink": {"color": "#ee7dd9", "pen_width": "0.7mm"},
-    "felt_tip_Lavender": {"color": "#9b95ef", "pen_width": "0.7mm"},
-    "felt_tip_Light Blue": {"color": "#00aded", "pen_width": "0.7mm"},
-    "felt_tip_Black": {"color": "#4b4a59", "pen_width": "0.7mm"},
-    "felt_tip_Dark Terracotta": {"color": "#cc6867", "pen_width": "0.7mm"},
-    "felt_tip_Turquoise": {"color": "#00b9c2", "pen_width": "0.7mm"},
-    "felt_tip_Dark Blue": {"color": "#3b56dd", "pen_width": "0.7mm"},
-    "technical_pen_Black": {"color": "#111111", "pen_width": "0.15mm"},
-    "technical_pen_Gray": {"color": "#888888", "pen_width": "0.15mm"},
-    "technical_pen_Sepia": {"color": "#704214", "pen_width": "0.15mm"},
-    "gel_pen_Black": {"color": "#222222", "pen_width": "0.5mm"},
-    "gel_pen_Blue": {"color": "#1E90FF", "pen_width": "0.5mm"},
-    "gel_pen_Green": {"color": "#27AE60", "pen_width": "0.5mm"},
-    "gel_pen_Pink": {"color": "#FF69B4", "pen_width": "0.5mm"},
-}
 
 @app.post("/api/hatch-svg")
 async def hatch_svg(
