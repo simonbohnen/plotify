@@ -113,8 +113,7 @@ import math
 import inkex
 
 from inkex.transforms import Transform
-from inkex.paths import Path
-from inkex import paths, bezier
+from inkex import bezier
 from lxml import etree
 
 __version__ = '4.1'

@@ -28,6 +28,7 @@ numpy<2.0
 vpype
 toml
 git+https://github.com/serycjon/vpype-flow-imager.git#egg=vpype-flow-imager[all]
-inkex
 svgutils
 replicate
+tinycss2
+cssselect
