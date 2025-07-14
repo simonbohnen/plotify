@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { nodeToDocument } from "@/lib/svg-utils";
+import { setStrokeToFillColor } from "@/lib/svg-color";
 import { API_URL } from "@/lib/api-utils";
 import { TOOL_CATEGORIES } from "./tool-selection-screen";
 
@@ -61,6 +62,10 @@ export const SvgHatchScreen: React.FC<SvgHatchScreenProps> = ({
     try {
       const formData = new FormData();
       const doc = nodeToDocument(svg);
+      
+      // Set stroke colors to fill colors before processing
+      setStrokeToFillColor(doc);
+      
       const serializer = new XMLSerializer();
       const svgString = serializer.serializeToString(doc);
       const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
@@ -69,11 +74,11 @@ export const SvgHatchScreen: React.FC<SvgHatchScreenProps> = ({
       // Build query parameters for the hatch-svg endpoint
       const params = new URLSearchParams({
         hatch_spacing: hatchConfig.hatchSpacing.toString(),
-        hatch_angle: "90.0", // Default
-        hold_back_steps: "3.0", // Default
+        hatch_angle: "45.0", // Default
+        hold_back_steps: "0.0", // Default
         cross_hatch: "false", // Default
-        reduce_pen_lifts: "true", // Default
-        hold_back_hatch_from_edges: "true", // Default
+        reduce_pen_lifts: "false", // Default
+        hold_back_hatch_from_edges: "false", // Default
         hatch_scope: "3.0", // Default
         tolerance: "20.0", // Default
         unit: "mm", // Default

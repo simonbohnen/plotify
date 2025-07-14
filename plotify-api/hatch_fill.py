@@ -790,26 +790,31 @@ class Hatch_Fill(inkex.Effect):
 
         # Now make a <path> element which contains the hatches & is a child
         # of the new <g> element
-        stroke_color = '#000000'  # default assumption
+        stroke_color = None  # default assumption
         stroke_width = str(transform_hatch_spacing)  # default value
         has_set_stroke_color = False
 
         try:
-            style = node.get('style')
-            if style is not None:
-                declarations = style.split(';')
-                for i, declaration in enumerate(declarations):
-                    parts = declaration.split(':', 2)
-                    if len(parts) == 2:
-                        (prop, val) = parts
-                        prop = prop.strip().lower()
-                        if prop == 'stroke' and not has_set_stroke_color:
-                            val = val.strip()
-                            stroke_color = val
-                        elif prop == 'fill':
-                            val = val.strip()
-                            stroke_color = val
-                            has_set_stroke_color = True
+            stroke_color = node.get("fill")
+            if stroke_color is None:
+                stroke_color = node.get("stroke")
+
+            if stroke_color is None:
+                style = node.get('style')
+                if style is not None:
+                    declarations = style.split(';')
+                    for i, declaration in enumerate(declarations):
+                        parts = declaration.split(':', 2)
+                        if len(parts) == 2:
+                            (prop, val) = parts
+                            prop = prop.strip().lower()
+                            if prop == 'stroke' and not has_set_stroke_color:
+                                val = val.strip()
+                                stroke_color = val
+                            elif prop == 'fill':
+                                val = val.strip()
+                                stroke_color = val
+                                has_set_stroke_color = True
         finally:
             style = {'stroke': '{0}'.format(stroke_color), 'fill': 'none', 'stroke-width': '{0}'.format(stroke_width)}
             line_attribs = {'style': str(inkex.Style(style)), 'd': path}

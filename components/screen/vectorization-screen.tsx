@@ -16,6 +16,7 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [previewImageURL, setPreviewImageURL] = useState<string | null>(null);
   const [maxColors, setMaxColors] = useState<number>(8);
+  const [removeWhites, setRemoveWhites] = useState<boolean>(true);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [isLoadingProduction, setIsLoadingProduction] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +45,7 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
       const formData = new FormData();
       formData.append('file', fileInputRef.current.files[0]);
 
-      const response = await fetch(`${API_URL}/api/vectorize?mode=mock-preview&max_colors=${maxColors}`, {
+      const response = await fetch(`${API_URL}/api/vectorize?mode=mock-preview&max_colors=${maxColors}&remove_whites=${removeWhites}`, {
         method: 'POST',
         body: formData,
       });
@@ -73,7 +74,7 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
       const formData = new FormData();
       formData.append('file', fileInputRef.current.files[0]);
 
-      const response = await fetch(`${API_URL}/api/vectorize?mode=mock&max_colors=${maxColors}`, {
+      const response = await fetch(`${API_URL}/api/vectorize?mode=mock&max_colors=${maxColors}&remove_whites=${removeWhites}`, {
         method: 'POST',
         body: formData,
       });
@@ -206,6 +207,22 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
                     Number of colors to use in vectorization (1-32)
                   </p>
                 </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="remove-whites"
+                    checked={removeWhites}
+                    onChange={(e) => setRemoveWhites(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <label htmlFor="remove-whites" className="text-sm font-medium">
+                    Remove White Colors
+                  </label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Remove white backgrounds and areas from the vectorized image
+                </p>
 
                 <Button
                   onClick={handleLoadPreview}

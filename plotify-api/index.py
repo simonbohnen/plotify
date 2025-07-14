@@ -10,9 +10,14 @@ import vpype_cli
 from vpype import read_svg_by_attributes
 import sys
 import requests
+import svgutils.transform as sg
+import uvicorn
 
 from hatched import hatched
 from hatch_fill import Hatch_Fill
+from isolines import clean_svg
+from depth import get_depth_image
+from isolines import get_isolines
 
 load_dotenv(".env.local")
 
@@ -128,7 +133,7 @@ async def assign_pens(
         pen_info = PEN_INFO.get(pen_id, {"color": "#000000", "pen_width": "0.3mm"})
         layer = {
             "layer_id": idx + 1,  # 1-based layer index
-            "name": pen_id,
+            "name": f"{idx + 1}_{pen_id}",
             "color": pen_info["color"],
             "pen_width": pen_info["pen_width"],
         }
@@ -159,7 +164,8 @@ async def assign_pens(
 async def vectorize(
     file: UploadFile = File(...),
     mode: str = Query(..., description="Vectorization mode"),
-    max_colors: int = Query(..., description="Maximum number of colors")
+    max_colors: int = Query(..., description="Maximum number of colors"),
+    remove_whites: bool = Query(False, description="Remove white colors from the image")
 ):
     """
     Vectorize an image using the vectorizer.ai API.
@@ -168,7 +174,7 @@ async def vectorize(
     # If mode is mock, return the wimbledon.svg file
     if mode == "mock":
         try:
-            with open("wimbledon.svg", "r") as f:
+            with open("wimbledon_figma.svg", "r") as f:
                 svg_content = f.read()
             return Response(content=svg_content, media_type="image/svg+xml")
         except FileNotFoundError:
@@ -200,6 +206,10 @@ async def vectorize(
             "mode": mode,
             "processing.max_colors": max_colors
         }
+        
+        # Add palette processing if remove_whites flag is present
+        if remove_whites:
+            data["processing.palette"] = "#FFFFFF -> #00000000 ~ 0.05;"
         
         # Make request to vectorizer.ai API
         response = requests.post(
@@ -238,10 +248,26 @@ async def vectorize(
 
 # Mapping of pen identifiers to color and pen width
 PEN_INFO = {
-    "felt_tip_Black": {"color": "#222222", "pen_width": "0.7mm"},
-    "felt_tip_Brown": {"color": "#8B5C2A", "pen_width": "0.7mm"},
-    "felt_tip_Red": {"color": "#C0392B", "pen_width": "0.7mm"},
-    "felt_tip_Blue": {"color": "#2980B9", "pen_width": "0.7mm"},
+    "felt_tip_Light Violet": {"color": "#ce6aee", "pen_width": "0.7mm"},
+    "felt_tip_Orange": {"color": "#f67f35", "pen_width": "0.7mm"},
+    "felt_tip_Blue": {"color": "#357ef3", "pen_width": "0.7mm"},
+    "felt_tip_Dark Pink": {"color": "#d373ed", "pen_width": "0.7mm"},
+    "felt_tip_Grey": {"color": "#aeb9c1", "pen_width": "0.7mm"},
+    "felt_tip_Bluish Red": {"color": "#e34b7f", "pen_width": "0.7mm"},
+    "felt_tip_Red": {"color": "#eb5d7a", "pen_width": "0.7mm"},
+    "felt_tip_Light Green": {"color": "#84d174", "pen_width": "0.7mm"},
+    "felt_tip_Cream": {"color": "#e5cab0", "pen_width": "0.7mm"},
+    "felt_tip_Brown": {"color": "#c47967", "pen_width": "0.7mm"},
+    "felt_tip_Dark Green": {"color": "#2cc2ac", "pen_width": "0.7mm"},
+    "felt_tip_Violet": {"color": "#7d4be2", "pen_width": "0.7mm"},
+    "felt_tip_Yellow": {"color": "#ddcf48", "pen_width": "0.7mm"},
+    "felt_tip_Pink": {"color": "#ee7dd9", "pen_width": "0.7mm"},
+    "felt_tip_Lavender": {"color": "#9b95ef", "pen_width": "0.7mm"},
+    "felt_tip_Light Blue": {"color": "#00aded", "pen_width": "0.7mm"},
+    "felt_tip_Black": {"color": "#4b4a59", "pen_width": "0.7mm"},
+    "felt_tip_Dark Terracotta": {"color": "#cc6867", "pen_width": "0.7mm"},
+    "felt_tip_Turquoise": {"color": "#00b9c2", "pen_width": "0.7mm"},
+    "felt_tip_Dark Blue": {"color": "#3b56dd", "pen_width": "0.7mm"},
     "technical_pen_Black": {"color": "#111111", "pen_width": "0.15mm"},
     "technical_pen_Gray": {"color": "#888888", "pen_width": "0.15mm"},
     "technical_pen_Sepia": {"color": "#704214", "pen_width": "0.15mm"},
@@ -255,10 +281,10 @@ PEN_INFO = {
 async def hatch_svg(
     file: UploadFile = File(...),
     hatch_spacing: float = Query(10.0, description="Spacing between hatch lines"),
-    hatch_angle: float = Query(90.0, description="Angle of inclination for hatch lines"),
-    hold_back_steps: float = Query(3.0, description="How far hatch strokes stay from boundary"),
+    hatch_angle: float = Query(45.0, description="Angle of inclination for hatch lines"),
+    hold_back_steps: float = Query(1.0, description="How far hatch strokes stay from boundary"),
     cross_hatch: bool = Query(False, description="Generate a cross hatch pattern"),
-    reduce_pen_lifts: bool = Query(True, description="Reduce plotting time by joining some hatches"),
+    reduce_pen_lifts: bool = Query(False, description="Reduce plotting time by joining some hatches"),
     hold_back_hatch_from_edges: bool = Query(True, description="Stay away from edges"),
     hatch_scope: float = Query(3.0, description="Radius searched for segments to join"),
     tolerance: float = Query(20.0, description="Allowed deviation from original paths"),
@@ -302,8 +328,26 @@ async def hatch_svg(
             with open(output_svg_path, "r") as f:
                 svg_content = f.read()
             
-            # Return the hatched SVG as XML
-            return Response(content=svg_content, media_type="image/svg+xml")
+            # Create a temporary file for the final output
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".svg") as tmp_final:
+                final_output_path = tmp_final.name
+            
+            try:
+                # Run vpype to remove fills and keep only strokes
+                import vpype_cli
+                new_doc = vpype_cli.execute(pipeline=f"read --attr stroke {output_svg_path}")
+
+                # Return SVG as XML
+                return document_to_svg_response(new_doc)
+                
+            except Exception as e:
+                # If vpype fails, return the original hatched SVG
+                print(f"Warning: vpype command failed: {str(e)}")
+                return Response(content=svg_content, media_type="image/svg+xml")
+            finally:
+                # Clean up the final output file
+                if os.path.exists(final_output_path):
+                    os.remove(final_output_path)
             
         finally:
             # Restore original sys.argv
@@ -322,3 +366,114 @@ async def hatch_svg(
             os.remove(input_svg_path)
         if os.path.exists(output_svg_path):
             os.remove(output_svg_path)
+
+@app.post("/api/move")
+async def move(file: UploadFile = File(...)):
+    """
+    Create a new SVG figure and append the uploaded SVG content to it.
+    Returns the combined SVG as XML.
+    """
+    # Save uploaded file to a temporary location
+    input_svg_path = await upload_file_to_temp(file, ".svg")
+    
+    try:
+        # Create a temporary output file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".svg") as tmp_output:
+            output_svg_path = tmp_output.name
+        
+        # Create new SVG figure
+        fig = sg.SVGFigure("264mm", "373mm")
+        
+        # Get the root of the passed SVG file
+        fig1 = sg.fromfile(input_svg_path)
+        plot1 = fig1.getroot()
+        
+        # Append it to the fig
+        fig.append([plot1])
+        
+        # Save to temp file
+        fig.save(output_svg_path)
+        
+        # Read the output SVG file
+        with open(output_svg_path, "r") as f:
+            svg_content = f.read()
+        
+        # Return the processed SVG as XML
+        return Response(content=svg_content, media_type="image/svg+xml")
+        
+    except Exception as e:
+        # Return a proper error response
+        return Response(
+            content=f"Error processing SVG: {str(e)}",
+            status_code=500,
+            media_type="text/plain"
+        )
+    finally:
+        # Clean up temporary files
+        if os.path.exists(input_svg_path):
+            os.remove(input_svg_path)
+        if os.path.exists(output_svg_path):
+            os.remove(output_svg_path)
+
+@app.post("/api/clean-svg")
+async def clean_svg_endpoint(file: UploadFile = File(...)):
+    """
+    Receives an SVG file, cleans it using clean_svg, and returns the cleaned SVG.
+    """
+    # Save uploaded file to a temporary location
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".svg") as tmp:
+        contents = await file.read()
+        tmp.write(contents)
+        tmp_path = tmp.name
+
+    try:
+        clean_svg(tmp_path)
+        with open(tmp_path, "r") as f:
+            svg_content = f.read()
+        return Response(content=svg_content, media_type="image/svg+xml")
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+@app.post("/api/depth-lines")
+async def depth_lines(
+    image: UploadFile = File(...),
+    mask: UploadFile = File(None)
+):
+    """
+    Receives an image (for depth) and an optional mask image, computes depth, extracts isolines, cleans the SVG, processes it with vpype, and returns it.
+    """
+    import uuid
+    # Save uploaded files to temporary locations
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Save depth image
+        image_path = os.path.join(tmpdir, f"depth_input_{uuid.uuid4().hex}.png")
+        with open(image_path, "wb") as f:
+            f.write(await image.read())
+        # Save mask image if provided
+        mask_path = None
+        if mask is not None:
+            mask_path = os.path.join(tmpdir, f"mask_input_{uuid.uuid4().hex}.png")
+            with open(mask_path, "wb") as f:
+                f.write(await mask.read())
+        # Output paths
+        depth_output_path = os.path.join(tmpdir, f"depth_output_{uuid.uuid4().hex}.png")
+        svg_output_path = os.path.join(tmpdir, f"isolines_{uuid.uuid4().hex}.svg")
+        processed_svg_path = os.path.join(tmpdir, f"processed_{uuid.uuid4().hex}.svg")
+        # Run depth computation
+        get_depth_image(image_path, depth_output_path)
+        # Run isolines extraction
+        get_isolines(mask_path if mask_path else image_path, depth_output_path, svg_output_path)
+        # Clean the SVG
+        clean_svg(svg_output_path)
+        # Run vpype pipeline
+        import vpype_cli
+        new_doc = vpype_cli.execute(
+            pipeline=f"read --simplify {svg_output_path} linesimplify filter --min-length 3mm linesort"
+        )
+        # Return SVG
+        return document_to_svg_response(new_doc)
+
+
+if __name__ == "__main__":
+    uvicorn.run("index:app", host="0.0.0.0", port=8000, reload=True)

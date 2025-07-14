@@ -16,11 +16,13 @@ import { ToolSelectionScreen } from "./tool-selection-screen";
 import { getColors } from "@/lib/svg-color";
 import { SvgHatchScreen } from "./svg-hatch-screen";
 import { VectorizationScreen } from "./vectorization-screen";
+import { RemoveFillColorsScreen } from "./remove-fill-colors-screen";
 
 // Example actions (replace or extend as needed)
 const actions = [
   { key: "hatch", title: "Hatch Image" },
   { key: "vectorize", title: "Vectorize Image" },
+  { key: "remove_fill_colors", title: "Remove Fill Colors" },
 ];
 
 export const OverviewScreen: React.FC = () => {
@@ -110,6 +112,9 @@ export const OverviewScreen: React.FC = () => {
       if (selectedAction === "hatch_svg") {
         return <SvgHatchScreen onClose={handleDialogClose} setSvg={setSvg} svg={svg} previewSVG={previewSVG} />;
       }
+      if (selectedAction === "remove_fill_colors") {
+        return <RemoveFillColorsScreen onClose={handleDialogClose} setSvg={setSvg} svg={svg} previewSVG={previewSVG} />;
+      }
     }
     return (
       <div className="py-4">
@@ -176,11 +181,11 @@ export const OverviewScreen: React.FC = () => {
         <div className="flex-1 p-6">
           <h3 className="text-sm font-medium mb-4">Actions</h3>
           <div className="space-y-3">
-            <Button variant="secondary" className="w-full justify-start" onClick={() => handleActionClick("hatch_svg")}>
-              Hatch
-            </Button>
             <Button variant="secondary" className="w-full justify-start" onClick={() => handleActionClick("layout")}>
               Lay Out
+            </Button>
+            <Button variant="secondary" className="w-full justify-start" onClick={() => handleActionClick("hatch_svg")}>
+              Hatch
             </Button>
             <Button variant="secondary" className="w-full justify-start" onClick={() => handleActionClick("tools")}>
               Select Tools
