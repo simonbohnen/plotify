@@ -32,3 +32,5 @@ svgutils
 replicate
 tinycss2
 cssselect
+pillow>=11.1.0
+vpype-pixelart

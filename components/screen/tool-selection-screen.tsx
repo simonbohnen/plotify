@@ -17,19 +17,34 @@ interface ToolSelectionScreenProps {
 export const TOOL_CATEGORIES = [
   {
     key: "felt_tip",
-    label: "Felt Tip",
-    pen_width: 0.7,
+    label: "Schreibwelt Felt Tip",
+    pen_width: 1,
   },
   {
     key: "technical_pen",
     label: "Technical Pen",
-    pen_width: 0.15,
+    pen_width: 0.1,
   },
   {
     key: "gel_pen",
     label: "Gel Pen",
-    pen_width: 0.5,
+    pen_width: 0.2,
   },
+  {
+    key: "stabilo_felt_tip",
+    label: "Stabilo Felt Tip",
+    pen_width: 1.5
+  },
+  {
+    key: "energel",
+    label: "Black Energel",
+    pen_width: 0.2
+  },
+  {
+    key: "other",
+    label: "Other",
+    pen_width: 1
+  }
 ];
 
 type ToolCategoryKey = typeof TOOL_CATEGORIES[number]["key"];
@@ -203,7 +218,7 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
           </div>
 
           {/* Right Panel - Color Tools */}
-          <div className="w-96 flex flex-col">
+          <div className="w-1/2 flex flex-col">
             <h3 className="text-sm font-medium mb-4">Color Tools</h3>
             
             {colors.length === 0 ? (
@@ -247,25 +262,6 @@ export const ToolSelectionScreen: React.FC<ToolSelectionScreenProps> = ({
                     </div>
                   );
                 })}
-              </div>
-            )}
-            
-            {/* Summary */}
-            {colors.length > 0 && (
-              <div className="mt-6 p-4 border rounded bg-muted/20">
-                <h4 className="text-sm font-medium mb-2">Summary</h4>
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <p>{colors.length} color{colors.length !== 1 ? 's' : ''} found</p>
-                  <p>
-                    {Object.values(colorToolMapping).filter(mapping => mapping.tool === 'felt_tip').length} felt tip
-                  </p>
-                  <p>
-                    {Object.values(colorToolMapping).filter(mapping => mapping.tool === 'technical_pen').length} technical pen
-                  </p>
-                  <p>
-                    {Object.values(colorToolMapping).filter(mapping => mapping.tool === 'gel_pen').length} gel pen
-                  </p>
-                </div>
               </div>
             )}
           </div>

@@ -159,7 +159,7 @@ resource "aws_ecs_task_definition" "api" {
     {
       name    = "${var.app_name}-api-container"
       image   = "${var.image}"
-      command = ["fastapi", "run", "--port", "80", "index.py"]
+      command = ["fastapi", "run", "--port", "80", "--workers", "8", "index.py"]
       portMappings = [
         {
           hostPort      = 80
@@ -205,26 +205,25 @@ resource "aws_security_group" "ecs" {
     security_groups = [aws_security_group.alb.id]
   }
 }
-resource "aws_ecs_service" "api" {
-  name            = "${var.app_name}-ecs-service"
-  cluster         = aws_ecs_cluster.this.name
-  launch_type     = "FARGATE"
-  desired_count   = length(var.private_subnet_ids)
-  task_definition = aws_ecs_task_definition.api.arn
-  network_configuration {
-    subnets         = var.private_subnet_ids
-    security_groups = [aws_security_group.ecs.id]
-  }
-  load_balancer {
-    target_group_arn = aws_lb_target_group.this.arn
-    container_name   = "${var.app_name}-api-container"
-    container_port   = "80"
-  }
-  lifecycle {
-    ignore_changes = [
-      desired_count,
-    ]
-  }
-  depends_on = [aws_lb_listener_rule.this]
-}
-
+# resource "aws_ecs_service" "api" {
+#   name            = "${var.app_name}-ecs-service"
+#   cluster         = aws_ecs_cluster.this.name
+#   launch_type     = "FARGATE"
+#   desired_count   = 1
+#   task_definition = aws_ecs_task_definition.api.arn
+#   network_configuration {
+#     subnets         = var.private_subnet_ids
+#     security_groups = [aws_security_group.ecs.id]
+#   }
+#   load_balancer {
+#     target_group_arn = aws_lb_target_group.this.arn
+#     container_name   = "${var.app_name}-api-container"
+#     container_port   = "80"
+#   }
+#   lifecycle {
+#     ignore_changes = [
+#       desired_count,
+#     ]
+#   }
+#   depends_on = [aws_lb_listener_rule.this]
+# }

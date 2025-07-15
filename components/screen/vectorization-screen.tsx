@@ -16,7 +16,10 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [previewImageURL, setPreviewImageURL] = useState<string | null>(null);
   const [maxColors, setMaxColors] = useState<number>(8);
+  const [useUnlimitedColors, setUseUnlimitedColors] = useState<boolean>(false);
   const [removeWhites, setRemoveWhites] = useState<boolean>(true);
+  const [drawStyle, setDrawStyle] = useState<'fill_shapes' | 'stroke_shapes'>('fill_shapes');
+  const [useSingleOutlineColor, setUseSingleOutlineColor] = useState<boolean>(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [isLoadingProduction, setIsLoadingProduction] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +48,16 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
       const formData = new FormData();
       formData.append('file', fileInputRef.current.files[0]);
 
-      const response = await fetch(`${API_URL}/api/vectorize?mode=preview&max_colors=${maxColors}&remove_whites=${removeWhites}`, {
+      let url = `${API_URL}/api/vectorize?mode=preview&remove_whites=${removeWhites}`;
+      url += `&output_draw_style=${drawStyle}`;
+      if (drawStyle === 'stroke_shapes' && useSingleOutlineColor) {
+        url += `&output_strokes_use_override_color=true`;
+      }
+      if (!useUnlimitedColors) {
+        url += `&max_colors=${maxColors}`;
+      }
+
+      const response = await fetch(url, {
         method: 'POST',
         body: formData,
       });
@@ -74,7 +86,16 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
       const formData = new FormData();
       formData.append('file', fileInputRef.current.files[0]);
 
-      const response = await fetch(`${API_URL}/api/vectorize?mode=production&max_colors=${maxColors}&remove_whites=${removeWhites}`, {
+      let url = `${API_URL}/api/vectorize?mode=production&remove_whites=${removeWhites}`;
+      url += `&output_draw_style=${drawStyle}`;
+      if (drawStyle === 'stroke_shapes' && useSingleOutlineColor) {
+        url += `&output_strokes_use_override_color=true`;
+      }
+      if (!useUnlimitedColors) {
+        url += `&max_colors=${maxColors}`;
+      }
+
+      const response = await fetch(url, {
         method: 'POST',
         body: formData,
       });
@@ -194,20 +215,36 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Maximum Colors
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="32"
-                    value={maxColors}
-                    onChange={(e) => setMaxColors(parseInt(e.target.value) || 8)}
-                    className="w-full px-3 py-2 border rounded-md bg-background"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Number of colors to use in vectorization (1-32)
-                  </p>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <input
+                      type="checkbox"
+                      id="use-unlimited-colors"
+                      checked={useUnlimitedColors}
+                      onChange={e => setUseUnlimitedColors(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <label htmlFor="use-unlimited-colors" className="text-sm font-medium">
+                      Use unlimited colors
+                    </label>
+                  </div>
+                  { !useUnlimitedColors && (
+                    <>
+                      <label className="block text-sm font-medium mb-2">
+                        Maximum Colors
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="32"
+                        value={maxColors}
+                        onChange={(e) => setMaxColors(parseInt(e.target.value) || 8)}
+                        className="w-full px-3 py-2 border rounded-md bg-background"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Number of colors to use in vectorization (1-32)
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 <div className="flex items-center space-x-2">
@@ -225,6 +262,44 @@ export const VectorizationScreen: React.FC<VectorizationScreenProps> = ({
                 <p className="text-xs text-muted-foreground">
                   Remove white backgrounds and areas from the vectorized image
                 </p>
+
+                {/* Draw Style Toggle */}
+                <div className="flex items-center space-x-2 mt-4">
+                  <label className="text-sm font-medium">Draw Style:</label>
+                  <button
+                    type="button"
+                    className={`px-2 py-1 rounded border ${drawStyle === 'fill_shapes' ? 'bg-primary text-white' : 'bg-background text-primary border-primary'}`}
+                    onClick={() => setDrawStyle('fill_shapes')}
+                  >
+                    Areas
+                  </button>
+                  <button
+                    type="button"
+                    className={`px-2 py-1 rounded border ${drawStyle === 'stroke_shapes' ? 'bg-primary text-white' : 'bg-background text-primary border-primary'}`}
+                    onClick={() => setDrawStyle('stroke_shapes')}
+                  >
+                    Outlines
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Choose whether to vectorize as filled areas or as outlines
+                </p>
+
+                {/* Use Single Color for Outlines Checkbox */}
+                {drawStyle === 'stroke_shapes' && (
+                  <div className="flex items-center space-x-2 mt-2">
+                    <input
+                      type="checkbox"
+                      id="use-single-outline-color"
+                      checked={useSingleOutlineColor}
+                      onChange={e => setUseSingleOutlineColor(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <label htmlFor="use-single-outline-color" className="text-sm font-medium">
+                      Use single color for outlines
+                    </label>
+                  </div>
+                )}
 
                 <Button
                   onClick={handleLoadPreview}

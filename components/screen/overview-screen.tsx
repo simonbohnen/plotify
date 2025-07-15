@@ -21,14 +21,19 @@ import { Palette, SquareArrowOutUpRight, Proportions } from "lucide-react";
 import { Hash } from "lucide-react";
 import { LineSquiggle } from "lucide-react";
 import { Eraser } from "lucide-react";
-import { PenTool } from "lucide-react";
+import { PenTool, PencilLine } from "lucide-react";
 import { DepthIsolinesScreen } from "./depth-isolines-screen";
+import { Grid2x2Check } from "lucide-react";
+import { CleanPixelartScreen } from "./clean-pixelart-screen";
+import { PixelartToSvgScreen } from "./pixelart-to-svg-screen";
 
 // Example actions (replace or extend as needed)
 const imageActions = [
   { key: "hatch", title: "Hatch Image" },
   { key: "vectorize", title: "Vectorize Image" },
   { key: "depth_isolines", title: "Create Line Art" },
+  { key: "clean_pixelart", title: "Clean Pixelart" },
+  { key: "pixelart_to_svg", title: "Pixelart to SVG" },
 ];
 const svgActions = [
   { key: "hatch_svg", title: "Hatch SVG" },
@@ -137,6 +142,12 @@ export const OverviewScreen: React.FC = () => {
     if (selectedAction === "depth_isolines") {
       return <DepthIsolinesScreen onClose={handleDialogClose} setSvg={setSvg} />;
     }
+    if (selectedAction === "clean_pixelart") {
+      return <CleanPixelartScreen onClose={handleDialogClose} />;
+    }
+    if (selectedAction === "pixelart_to_svg") {
+      return <PixelartToSvgScreen onClose={handleDialogClose} setSvg={setSvg} />;
+    }
     if (svg) {
       if (selectedAction === "layout") {
         return <LayoutScreen onClose={handleDialogClose} setSvg={setSvg} setPreviewSVG={setPreviewSVG} svg={svg} />;
@@ -186,6 +197,8 @@ export const OverviewScreen: React.FC = () => {
                     {action.key === "hatch" && <Hash className="w-12 h-12 text-primary/80" />}
                     {action.key === "vectorize" && <LineSquiggle className="w-12 h-12 text-primary/80" />}
                     {action.key === "depth_isolines" && <PenTool className="w-12 h-12 text-primary/80" />}
+                    {action.key === "clean_pixelart" && <Grid2x2Check className="w-12 h-12 text-primary/80" />}
+                    {action.key === "pixelart_to_svg" && <PencilLine className="w-12 h-12 text-primary/80" />}
                   </div>
                   <span className="mt-1 text-base font-medium text-center">{action.title}</span>
                 </div>
@@ -301,6 +314,22 @@ export const OverviewScreen: React.FC = () => {
                 type="button"
               >
                 Submit your plot
+                <SquareArrowOutUpRight className="h-4 w-4 ml-1" />
+              </Button>
+            </a>
+            {/* Feedback button */}
+            <a
+              href="https://docs.google.com/forms/d/1KdkESinbcdlSq1nEkR-gJQsia37cLe6R7HKz7sZHqOo/edit"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block mt-2"
+            >
+              <Button
+                variant="outline"
+                className="w-full justify-start border-dashed text-primary flex items-center gap-2 hover:bg-accent"
+                type="button"
+              >
+                Leave Plot Jam Feedback
                 <SquareArrowOutUpRight className="h-4 w-4 ml-1" />
               </Button>
             </a>

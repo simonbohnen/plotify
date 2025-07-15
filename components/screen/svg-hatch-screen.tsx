@@ -164,7 +164,7 @@ export const SvgHatchScreen: React.FC<SvgHatchScreenProps> = ({
               <div className="space-y-3">
                 <label className="text-sm font-medium">Hatching Tool</label>
                 <div className="space-y-2">
-                  {TOOL_CATEGORIES.map((tool) => (
+                  {TOOL_CATEGORIES.filter(tool => tool.key !== 'other').map((tool) => (
                     <div
                       key={tool.key}
                       className={`p-3 border rounded cursor-pointer transition-colors ${
@@ -207,16 +207,6 @@ export const SvgHatchScreen: React.FC<SvgHatchScreenProps> = ({
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>0.1mm</span>
                   <span>5.0mm</span>
-                </div>
-              </div>
-
-              {/* Preview Information */}
-              <div className="p-4 border rounded bg-muted/20">
-                <h4 className="text-sm font-medium mb-2">Hatching Preview</h4>
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <p>Tool: {selectedToolObj?.label}</p>
-                  <p>Spacing: {hatchConfig.hatchSpacing}mm</p>
-                  <p>Angle: 90° (default)</p>
                 </div>
               </div>
             </div>

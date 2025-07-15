@@ -12,12 +12,14 @@ import sys
 import requests
 import svgutils.transform as sg
 import uvicorn
+from pathlib import Path
 
 from hatched import hatched
 from hatch_fill import Hatch_Fill
 from isolines import clean_svg
 from depth import get_depth_image
 from isolines import get_isolines
+from proper_pixel_art import generate
 
 load_dotenv(".env.local")
 
@@ -209,8 +211,10 @@ async def assign_pens(
 async def vectorize(
     file: UploadFile = File(...),
     mode: str = Query(..., description="Vectorization mode"),
-    max_colors: int = Query(..., description="Maximum number of colors"),
-    remove_whites: bool = Query(False, description="Remove white colors from the image")
+    max_colors: int = Query(None, description="Maximum number of colors"),
+    remove_whites: bool = Query(False, description="Remove white colors from the image"),
+    output_draw_style: str = Query(None, description="Draw style: fill_shapes or stroke_shapes"),
+    output_strokes_use_override_color: bool = Query(None, description="Use single color for outlines")
 ):
     """
     Vectorize an image using the vectorizer.ai API.
@@ -248,13 +252,23 @@ async def vectorize(
     try:
         # Prepare the data for the vectorizer.ai API
         data = {
-            "mode": mode,
-            "processing.max_colors": max_colors
+            "mode": mode
         }
+        if max_colors is not None:
+            data["processing.max_colors"] = max_colors
         
         # Add palette processing if remove_whites flag is present
         if remove_whites:
             data["processing.palette"] = "#FFFFFF -> #00000000 ~ 0.05;"
+        
+        # Pass through new parameters if provided
+        if output_draw_style is not None:
+            data["output.draw_style"] = output_draw_style
+        if output_strokes_use_override_color is not None:
+            data["output.strokes.use_override_color"] = str(output_strokes_use_override_color).lower()
+            data["output.strokes.override_color"] = "#000000"
+        
+        print(data)
         
         # Make request to vectorizer.ai API
         response = requests.post(
@@ -473,7 +487,6 @@ async def depth_lines(
         # Output paths
         depth_output_path = os.path.join(tmpdir, f"depth_output_{uuid.uuid4().hex}.png")
         svg_output_path = os.path.join(tmpdir, f"isolines_{uuid.uuid4().hex}.svg")
-        processed_svg_path = os.path.join(tmpdir, f"processed_{uuid.uuid4().hex}.svg")
         # Run depth computation
         get_depth_image(image_path, depth_output_path)
         # Run isolines extraction
@@ -487,6 +500,92 @@ async def depth_lines(
         )
         # Return SVG
         return document_to_svg_response(new_doc)
+
+@app.post("/api/clean-pixelart")
+async def clean_pixelart(
+    file: UploadFile = File(...),
+    num_colors: int = Query(..., description="Number of colors for pixel art")
+):
+    """
+    Receives an image, runs generate_pixel_art, and returns the result.png file.
+    """
+    # Save uploaded file to a temporary location
+    suffix = Path(file.filename or "img.png").suffix
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        contents = await file.read()
+        tmp.write(contents)
+        img_path = Path(tmp.name)
+
+    # Create a temporary output directory
+    with tempfile.TemporaryDirectory() as out_dir:
+        out_dir_path = Path(out_dir)
+        # The output will be in a subdirectory named after the file (without extension)
+        base_name = img_path.stem
+        output_subdir = out_dir_path / base_name
+        output_subdir.mkdir(exist_ok=True)
+
+        # Prepare args namespace for compatibility
+        class Args:
+            pass
+        args = Args()
+        args.num_colors = num_colors
+        args.pixel_size = 1
+        args.transparent = True
+
+        # Run the pixel art generator
+        generate.generate_pixel_art(
+            img_path,
+            out_dir_path,
+            args.num_colors,
+            pixel_size=args.pixel_size,
+            transparent_background=args.transparent,
+        )
+
+        # Find the result.png in the output subdirectory
+        result_path = output_subdir / "result.png"
+        if not result_path.exists():
+            # Try fallback: sometimes output may be in out_dir directly
+            result_path = out_dir_path / "result.png"
+        if not result_path.exists():
+            return Response(content="result.png not found", status_code=500, media_type="text/plain")
+
+        # Return the result.png file
+        with open(result_path, "rb") as f:
+            result_content = f.read()
+        return Response(content=result_content, media_type="image/png")
+    # Clean up temp file
+    if img_path.exists():
+        img_path.unlink()
+
+@app.post("/api/pixelart-to-svg")
+async def pixelart_to_svg(
+    file: UploadFile = File(...),
+    pen_width: float = Query(1.0, description="Pen width in mm"),
+    u: int = Query(8, description="Pixel size (u) parameter")
+):
+    """
+    Receives an image, runs vpype pixelart plugin, and returns the resulting SVG.
+    """
+    import tempfile
+    from pathlib import Path
+    # Save uploaded file to a temporary location
+    suffix = Path(file.filename or "img.png").suffix
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        contents = await file.read()
+        tmp.write(contents)
+        img_path = tmp.name
+
+    try:
+        # Compose the vpype pipeline command
+        pipeline = f"pixelart --mode snake --pen-width {pen_width}mm -u {u} '{img_path}' linesort"
+        # Run vpype pipeline
+        import vpype_cli
+        new_doc = vpype_cli.execute(pipeline=pipeline)
+        # Return SVG as XML
+        return document_to_svg_response(new_doc)
+    finally:
+        if Path(img_path).exists():
+            Path(img_path).unlink()
 
 
 if __name__ == "__main__":
