@@ -152,7 +152,7 @@ export const CleanPixelartScreen: React.FC<CleanPixelartScreenProps> = ({ onClos
                       <div className="w-32 h-32 border-2 border-dashed border-muted-foreground rounded flex items-center justify-center mb-2">
                         <span className="text-xs">No Cleaned Image</span>
                       </div>
-                      <p className="text-sm">Click "Clean Pixelart" to process the image</p>
+                      <p className="text-sm">Click &quot;Clean Pixelart&quot; to process the image</p>
                     </div>
                   )}
                 </div>
@@ -175,7 +175,7 @@ export const CleanPixelartScreen: React.FC<CleanPixelartScreenProps> = ({ onClos
               <h3 className="text-sm font-medium mb-2">Instructions</h3>
               <ol className="text-xs text-muted-foreground space-y-2">
                 <li>1. Upload a pixelart image file (PNG, JPG, etc.)</li>
-                <li>2. Click "Clean Pixelart" to process and clean the image</li>
+                <li>2. Click &quot;Clean Pixelart&quot; to process and clean the image</li>
                 <li>3. Download the cleaned image using the Download button</li>
               </ol>
             </div>
